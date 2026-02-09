@@ -1,0 +1,196 @@
+:root {
+  --naranja: #ff6800;
+}
+body {
+  min-width: 1530px;
+}
+
+/* IMPORTANTÍSIMO -----INI------------------*/
+/* Utilizo un ancho máximo como no utilizo flex o grid css, para evitar
+que los elementos se solapen al tener la ventana un tamaño menor (por ejemplo al minimizarla)
+el tamaño se mantendrá y se mostrará una barra de desplazamiento
+*/
+/* Estilos para pantallas menores a 1530px */
+@media (max-width: 1529px) {
+  body {
+    overflow-x: auto; /* Si no cabe aparece scroll horizontal */
+  }
+}
+/* IMPORTANTÍSIMO -----FIN------------------*/
+
+.text-center {
+  text-align: center;
+}
+
+/* Cambio el color "gris" que tiene el layout de Ant Design */
+.ant-layout {
+  background-color: white !important;
+  /* width: 100% !important; */
+}
+
+a {
+  text-decoration: none;
+  color: black !important;
+}
+/* Para que cambie el fondo al hacer hover en las columnas de la tabla de solicitudes */
+#tablaSolicitudes .ant-table-row-level-0:hover .ant-table-cell {
+  background-color: orange !important;
+  color: black !important;
+}
+
+/* CSS PARA BOTONES ANT DESIGN SIMULANDO BOOTSTRAP OUTLINED*/
+
+/* Primary */
+.ant-outlined-primary {
+  color: #007bff !important;
+  background-color: white !important;
+  border-color: #007bff !important;
+}
+
+.ant-outlined-primary:hover {
+  background-color: #007bff !important;
+  border-color: transparent !important;
+  color: white !important;
+}
+
+/* Success */
+.ant-outlined-success {
+  color: #198754 !important;
+  background-color: white !important;
+  border-color: #198754 !important;
+}
+.ant-outlined-success:hover {
+  color: white !important;
+  background-color: #198754 !important;
+  border-color: transparent !important;
+}
+
+/* Warning */
+.ant-outlined-warning {
+  color: #ffc107 !important;
+  background-color: white !important;
+  border-color: #ffc107 !important;
+}
+.ant-outlined-warning:hover {
+  color: white !important;
+  background-color: #ffc107 !important;
+  border-color: transparent !important;
+}
+
+/* Danger */
+.ant-outlined-danger {
+  color: #dc3545 !important;
+  background-color: white !important;
+  border-color: #dc3545 !important;
+}
+.ant-outlined-danger:hover {
+  color: white !important;
+  background-color: #dc3545 !important;
+  border-color: transparent !important;
+}
+
+/* Info */
+.ant-outlined-info {
+  color: #0dcaf0 !important;
+  background-color: white !important;
+  border-color: #0dcaf0 !important;
+}
+.ant-outlined-info:hover {
+  color: black !important;
+  background-color: #0dcaf0 !important;
+  border-color: transparent !important;
+}
+
+/* Secondary */
+.ant-outlined-secondary {
+  color: #6c757d !important;
+  background-color: white !important;
+  border-color: #6c757d !important;
+}
+.ant-outlined-secondary:hover {
+  color: white !important;
+  background-color: #6c757d !important;
+  border-color: transparent !important;
+}
+/* Indigo */
+.ant-outlined-indigo {
+  color: indigo !important;
+  background-color: white !important;
+  border-color: indigo !important;
+}
+.ant-outlined-indigo:hover {
+  color: white !important;
+  background-color: indigo !important;
+  border-color: transparent !important;
+}
+
+/* Estilos para el Modal de Ant Design */
+.dark-modal .ant-modal-header {
+  background-color: #333 !important;
+  color: #fff !important;
+}
+
+.dark-modal .ant-modal-footer {
+  background-color: #f0f0f0 !important;
+}
+
+.dark-modal .ant-modal-body {
+  background-color: #f0f0f0 !important;
+}
+
+.dark-modal .dark-modal-title span,
+.dark-modal [data-icon='close'] {
+  color: #fff !important;
+}
+
+/* Botón de buscar */
+.dark-modal .ant-input-search-button {
+  color: darkblue !important;
+}
+.dark-modal .ant-input-search-button:hover {
+  background-color: rgb(102, 41, 146);
+  color: white !important;
+}
+
+/* -------------- */
+
+/* formato para todos los campos inhabilitados */
+:disabled {
+  background-color: pink;
+  color: black;
+  font-weight: bold;
+}
+/* formato de los labels incluidos de Ant Design lo que hay en <a-form-item> */
+label {
+  margin-left: 15px;
+  font-weight: 500;
+  font-size: 16px !important;
+}
+
+/* importantísimo  display: inline-flex; para que salgan en una sola fila 
+  y el height para que al salir el mensaje de error (cuando no cumple alguna validación) no 
+  empuje la línea hacia abajo */
+.componente-inline {
+  display: inline-flex;
+  /* display: inline; */
+  height: 55px;
+}
+/* Como el anterior pero se utiliza para el listado donde no hay mensajes de error */
+.componente-inline-listado {
+  display: inline-flex;
+  height: 40px;
+}
+
+.center {
+  margin: 0 auto;
+}
+
+.disabled * {
+  /* se aplica a todos los elementos excepto al id="salir" el botón de salir que hay en <BotonSalir> y a Subir Ficheros
+    que hay en UploadFiles que tienen la clase habilitado (main.css) */
+  pointer-events: none;
+  /* para que no funcione al hacer click en algún elemento */
+}
+.enabled {
+  pointer-events: auto;
+}
