@@ -225,6 +225,7 @@ const openModal = (value) => {
 
 const fillData = async (tipo) => {
   try {
+    debugger;
     loading.value = true;
     const url = 'Busquedas_JSONP.asp';
     const buscar = tipo === 'C' ? formState.busqCodigo : tipo === 'N' ? formState.busqNombre : formState.busqNIF;
@@ -270,7 +271,7 @@ const nuevoProv = () => {
   formState.codigo = 'NUEVO';
   disabledCpos.value = false;
   nextTick(
-    () => nomProv.value.focus() //foco al código de pro
+    () => nomProv.value.focus(), //foco al código de pro
   );
 };
 

@@ -278,29 +278,7 @@ const cancel = (key) => {
   });
 };
 
-const descripcion72 = (descrip, key) => {
-  // Como la descripción se termina guardando en la tabla ZTMM047 que es una tabla de las que
-  // permiten introducir notas en SAP y cada una de sus líneas debe de ser de 72 posiciones,
-  // la función se encarga de  saltar de línea cada 72 caracteres.
-  return;
-  // const lines = descrip.split('\n');
-  // for (let i = 0; i < lines.length; i++) {
-  //   if (lines[i].length > 72) {
-  //     let modifiedLine = '';
 
-  //     while (lines[i].length > 72) {
-  //       modifiedLine += lines[i].substring(0, 72) + '\n';
-  //       lines[i] = lines[i].substring(72);
-  //     }
-
-  //     modifiedLine += lines[i];
-  //     lines[i] = modifiedLine;
-  //   }
-  // }
-  // // Actualizamos V-MODEL DEL CAMPO de esta forma automáticamente
-  // // se actualiza en pantalla
-  // editableData[key]['descripcion'] = lines.join('\n');
-};
 </script>
 
 <!-- ---------------------------------------------- -->

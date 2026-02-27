@@ -1,5 +1,6 @@
 <template>
-  <div :class="{ disabled: st.dt.numPedido }">
+  <!-- <div :class="{ disabled: st.dt.numPedido }"> -->
+  <div>
     <!-- Si tiene pedido estará inhabilidado -->
     <!-- Importante: el layout del formulario tiene que ser horizontal y en cada componente en el
     div principal debe ir la clase componente-inline -->
@@ -14,13 +15,13 @@
     >
       <!-- Los divs son necesarios para crear el salto de línea, de lo contrario si se cambiara la resolución saldrían juntos -->
       <div>
+        <TipoSolicitud />
+      </div>
+      <div>
         <ImputacionSociedad />
       </div>
       <div>
-        <TipoPrioridFechas />
-      </div>
-      <div>
-        <DireccionContacto />
+        <!-- <DireccionContacto /> -->
       </div>
       <div>
         <ProveedorCompras />
@@ -29,12 +30,9 @@
         <PagoProveedor />
       </div>
       <div>
-        <CheckCalidadAdjud />
-      </div>
-      <div>
         <Observaciones />
       </div>
-      <TablaDetalle />
+      <!-- <TablaDetalle /> -->
 
       <LogErrores v-if="mostarErrores" @ocultarLogErrores="ocultarLogErrores" :errores="errValidacion"></LogErrores>
       <UploadFiles />
@@ -85,13 +83,13 @@ onMounted(async () => {
   if (id !== '0') {
     try {
       await st.getSolicitud(id);
-      if (st.dt.numPedido) {
-        Modal.info({
-          title: 'Esta solicitud no se puede modificar porque tiene un pedido asignado',
-          // content: 'some messages...some messages...',
-          okText: 'Aceptar',
-        });
-      }
+      // if (st.dt.numPedido) {
+      //   Modal.info({
+      //     title: 'Esta solicitud no se puede modificar porque tiene un pedido asignado',
+      //     // content: 'some messages...some messages...',
+      //     okText: 'Aceptar',
+      //   });
+      // }
     } catch (error) {
       console.log(error);
     } finally {
@@ -159,7 +157,7 @@ const formIncompleto = (errors) => {
   if (errors) {
     console.log(errors);
     Modal.error({
-      title: 'No es posible guardar la Solicitud de Compras',
+      title: 'No es posible guardar la Solicitud de Pago',
       content: 'Faltan datos por completar.',
       okText: 'Aceptar',
     });

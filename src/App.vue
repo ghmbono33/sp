@@ -17,7 +17,7 @@
       <RouterView />
     </a-layout-content>
   </a-layout> -->
-  <header>Solicitud de Compras</header>
+  <header>Solicitud de Pago</header>
   <div class="contenedor">
     <RouterView />
   </div>

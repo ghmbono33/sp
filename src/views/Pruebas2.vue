@@ -1,48 +1,43 @@
 <template>
-  <div>
-    <h1>Hola</h1>
-    <div v-for="fruta in frutas">
-      <b>{{ fruta.nombre }}</b> - {{ fruta.color }}
-      <div class="propiedades" v-for="(valor, propiedad) in fruta">
-        <b>{{ propiedad }}</b> - {{ valor }}
-      </div>
-    </div>
-    <div class="btn">Botón</div>
-  </div>
+  <a-form-item name="importe" label="Importe">
+    <a-input-number
+      v-model:value="st.dt.importe"
+      :min="0"
+      :precision="2"
+      :step="0.01"
+      style="width: 120px"
+      @pressEnter.prevent
+    />
+  </a-form-item>
+
+  <a-form-item name="imputacion" label="Imputación">
+    <a-select
+      v-model:value="st.dt.prioridad"
+      :options="opcImputacionComputed"
+      placeholder="Selec. opción"
+      style="width: 130px"
+    />
+  </a-form-item>
 </template>
 
 <script setup>
-const frutas = [
-  {
-    nombre: 'pera',
-    color: 'verde',
-  },
-  {
-    nombre: 'fresa',
-    color: 'rojo',
-  },
-  {
-    nombre: 'plátano',
-    color: 'amarillo',
-  },
-];
-</script>
+import { reactive, computed } from 'vue';
 
-<style scoped>
-.propiedades {
-  margin-left: 20px;
-}
-.btn {
-  padding: 0;
-  height: 80px;
-  width: 80px;
-  line-height: 80px;
-  text-align: center;
-  background-color: red;
-  border-radius: 50%;
-  position: relative;
-  position: absolute;
-  right: 50px;
-  bottom: 50px;
-}
-</style>
+const st = reactive({
+  dt: {
+    importe: 0,
+  },
+});
+
+const opcImputacionBase = [
+  { label: 'Pedido', value: 'P' },
+  { label: 'Elem. Imputación', value: 'I' },
+];
+
+const opcImputacionComputed = computed(() =>
+  opcImputacionBase.map((op) => ({
+    ...op,
+    disabled: op.value === 'I' && st.dt.importe >= 3000,
+  })),
+);
+</script>

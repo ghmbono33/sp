@@ -1,6 +1,6 @@
 <template>
   <div class="componente-inline" style="height: 100px">
-    <a-form-item name="observa" :rules="[{ required: st.dt.tipoPedido === 'S' }]" label="Observaciones">
+    <a-form-item name="observa" :rules="[{ required: st.dt.tipoSolicitud === 'S' }]" label="Observaciones">
       <a-textarea v-model:value="st.dt.observa" :rows="3" :maxlength="800" style="width: 1100px; resize: none" />
     </a-form-item>
     <div style="display: block !important"></div>

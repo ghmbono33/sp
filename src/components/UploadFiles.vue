@@ -194,7 +194,7 @@ const selectFiles = (files) => {
   if (ficheroRepetido) {
     mensaje(
       'Se ha seleccionado algún fichero ya incluido previamente. No puede haber más de un archivo con el mismo nombre',
-      true
+      true,
     );
   }
 };
@@ -292,7 +292,7 @@ const subirFicheros = async () => {
       // Nota: La petición la hago vía fetch ya que no es posible hacerlo con JSONP
       // porque  éste no admite el método POST. Por lo tanto  las pruebas
       // no las puedo hacer desde localhost
-      const url = `asp/upload.asp?numsolcom=${st.dt.id}&nomFichero=${fich.name}`;
+      const url = `asp/upload.asp?NUMSOLPAGO=${st.dt.id}&nomFichero=${fich.name}`;
       const res = await fetch(url, { method: 'POST', body: formData });
       // if (st.dt.ficheros.length > 0 && st.dt.ficheros.slice(-1) !== '|') {
       //   // Hay ficheros pero el último no lleva el separador "|" al final, esto es debido a que se quitó al guardarlo

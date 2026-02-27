@@ -20,5 +20,5 @@ import { useStore } from '../stores/store.js';
 import { computed } from 'vue';
 
 const st = useStore();
-const requerido = computed(() => st.dt.tipoPedido === 'S');
+const requerido = computed(() => st.dt.tipoSolicitud === 'S');
 </script>

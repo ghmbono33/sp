@@ -23,10 +23,10 @@
       />
     </a-form-item>
     <a-form-item
-      v-if="st.dt.tipoPedido === 'S'"
+      v-if="st.dt.tipoSolicitud === 'S'"
       name="portes"
       label="Portes"
-      :rules="[{ required: st.dt.tipoPedido === 'S', message: 'Campo Obligatorio' }]"
+      :rules="[{ required: st.dt.tipoSolicitud === 'S', message: 'Campo Obligatorio' }]"
     >
       <a-select
         v-model:value="st.dt.portes"

@@ -7,6 +7,9 @@ import { urlParam } from '../helpers/varios';
 export const useStore = defineStore('store', () => {
   const initialState = {
     id: '0', //nº solicitud compra
+    tipoSolicitud: '',
+    importe: 0,
+    imputacion: '',
     fecSolicitud: fechaSolicitud(),
     sociedad: '',
     tipoImputacion: '',
@@ -20,15 +23,14 @@ export const useStore = defineStore('store', () => {
     mismaSocProv: true,
     detalle: [], //tabla/grid con el detalle
     solicitudes: [], //tabla/grid  (pantalla principal búsqueda solicitudes)
-    tipoPedido: '',
-    prioridad: '2', //prioridad media
-    fecEntrega: '',
-    fecInicio: '',
-    fecFin: '',
-    dirEntrega: '',
-    contacto: '',
-    calidad: true,
-    adjNeg: false,
+    // prioridad: '2', //prioridad media
+    // fecEntrega: '',
+    // fecInicio: '',
+    // fecFin: '',
+    // dirEntrega: '',
+    // contacto: '',
+    // calidad: true,
+    // adjNeg: false,
     observa: '',
     fecDesde: '', //fecha filtro en el listado de SC
     fecHasta: '', //fecha filtro en el listado de SC
@@ -151,7 +153,7 @@ export const useStore = defineStore('store', () => {
       dt.mismaSocProv = data.mismaSocProv;
       dt.portes = data.portes;
       dt.delegoProv = data.delegoProv === 'X';
-      dt.tipoPedido = data.tipoPedido;
+      dt.tipoSolicitud = data.tipoSolicitud;
       dt.prioridad = data.prioridad;
       dt.dirEntrega = data.dirEntrega;
       dt.contacto = data.contacto;
@@ -262,7 +264,7 @@ export const useStore = defineStore('store', () => {
       condPago: dt.condPago,
       mismaSocProv: dt.mismaSocProv ? 'X' : '',
       delegoProv: dt.delegoProv ? 'X' : '',
-      tipoPed: dt.tipoPedido,
+      tipoPed: dt.tipoSolicitud,
       prioridad: dt.prioridad,
       fecEntrega: fechaSap(dt.fecEntrega),
       fecInicio: fechaSap(dt.fecInicio),
@@ -272,7 +274,7 @@ export const useStore = defineStore('store', () => {
       calidad: dt.calidad ? 'X' : '',
       adjNeg: dt.adjNeg ? 'X' : '',
       observa: dt.observa,
-      portes: dt.tipoPedido === 'S' ? dt.portes : '',
+      portes: dt.tipoSolicitud === 'S' ? dt.portes : '',
       importe,
       // ficheros: dt.ficheros,
     };
