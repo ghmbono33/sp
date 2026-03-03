@@ -1,6 +1,7 @@
 <template>
   <div>
     Datos Pedido: {{ st.dt.tipoImputacion }} - {{ st.dt.elementoImputacion }} - {{ st.dt.textoElementoImputacion }}
+    {{ st.dt.viaPago }} {{ st.dt.bancos }}
   </div>
   <div class="componente-inline">
     <a-form-item name="tipoSolicitud" label="Tipo Solicitud">
@@ -24,6 +25,7 @@
       />
     </a-form-item>
 
+    <!-- Imputación -->
     <a-form-item name="imputacion" label="Imputación">
       <a-select
         v-model:value="st.dt.prioridad"
@@ -39,6 +41,22 @@
       <a-input v-model:value="st.dt.numPedido" style="width: 120px" @blur="getPedido" @pressEnter.prevent />
     </a-form-item>
     <Loader :loading="loading" />
+    <a-form-item name="inmovilizado" label="Inmovilizado">
+      <a-checkbox v-model:checked="st.dt.inmovilizado" />
+    </a-form-item>
+
+    <!-- <div>
+      <a-form-item name="viaPago" label="Vía de pago">
+        <a-select
+          v-model:value="st.dt.viaPago"
+          :options="st.gb.viasPago"
+          placeholder="Vía de pago"
+          style="width: 200px"
+        >
+        </a-select>
+      </a-form-item>
+    </div> -->
+
     <a-form-item label="F. Solicitud" class="ms-3">
       <a-input type="date" disabled style="width: 120px" v-model:value="st.dt.fecSolicitud" />
     </a-form-item>
@@ -49,8 +67,7 @@
 <script setup>
 // import { message } from 'ant-design-vue';
 import { httpJSONP } from '../helpers/http';
-import { ref } from 'vue';
-import { computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 
 // Pinia
 import { useStore } from '../stores/store.js';
@@ -88,7 +105,6 @@ const getPedido = async () => {
     if (st.dt.numPedido.trim() === '') return;
     const payload = { numpedido: st.dt.numPedido };
     dataProv.value = await httpJSONP(url, payload);
-    debugger;
     st.dt.codProv = dataProv.value.proveedor;
     st.dt.nomProv = dataProv.value.nomProveedor;
     st.dt.nifProv = dataProv.value.cifProveedor;
@@ -96,6 +112,8 @@ const getPedido = async () => {
     st.dt.textoElementoImputacion = dataProv.value.textoElementoImputacion;
     st.dt.elementoImputacion = dataProv.value.elementoImputacion;
     st.dt.sociedad = dataProv.value.sociedad + ' - ' + dataProv.value.nomSociedad;
+    st.dt.inmovilizado = dataProv.value.inmovilizado === 'X';
+    st.dt.bancos = dataProv.value.bancos ? dataProv.value.bancos.split(',') : [];
   } catch (error) {
     return console.error(error);
   } finally {

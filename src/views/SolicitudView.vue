@@ -26,14 +26,13 @@
       <div>
         <ProveedorCompras />
       </div>
-      <div>
-        <PagoProveedor />
+      <div class="contenedor-flex">
+        <CuentasProveedor />
+        <CuentaBancaria />
       </div>
       <div>
         <Observaciones />
       </div>
-      <!-- <TablaDetalle /> -->
-
       <LogErrores v-if="mostarErrores" @ocultarLogErrores="ocultarLogErrores" :errores="errValidacion"></LogErrores>
       <UploadFiles />
       <GuardarSalir />
@@ -117,33 +116,6 @@ const validaciones = () => {
   // Las validaciones realizadas con rules en el formulario son correctas
   // Comprobamos otras validaciones
   errValidacion = [];
-  // Si fecha inicio y fecha fin están informados inicio debe ser anterior a fin
-  if (!fechaVacia(st.dt.fecInicio) && !fechaVacia(st.dt.fecFin) && st.dt.fecInicio > st.dt.fecFin) {
-    errValidacion.push('Fecha Inicio debe ser igual o anterior a Fecha Fin');
-  }
-  if (fechaVacia(st.dt.fecEntrega) && fechaVacia(st.dt.fecInicio) && fechaVacia(st.dt.fecFin)) {
-    errValidacion.push('Se requiere al menos una fecha');
-  }
-
-  // mba-20/10/2023 AGUILLEM dice que en algunos casos se debe de poder introducir una fecha anterior a la
-  // de la solicitud. El control lo haré en el propio campo sacando un mensaje de advertencia
-  // if (
-  //   fecAnteriorSolicitud(st.dt.fecEntrega) ||
-  //   fecAnteriorSolicitud(st.dt.fecInicio) ||
-  //   fecAnteriorSolicitud(st.dt.fecFin)
-  // ) {
-  //   // Este mensaje se mostrará pero permitirá guardar por eso no indico errorGuardar=true
-  //   errValidacion.push('Las fechas no pueden ser anteriores a la fecha de solicitud');
-  // }
-
-  if (st.ultimaFilaVacia()) {
-    errValidacion.push('Existe una fila en la tabla de detalle pendiente de guardar');
-  }
-  // const importe = st.total();
-  // if (importe === 0) {
-  if (st.dt.detalle.length === 0) {
-    errValidacion.push('El pedido requiere al menos una línea de detalle');
-  }
   //Mostramos el modal con los errores, es necesario ya que con el modal.error no funcionan los saltos de línea
   if (errValidacion.length > 0) {
     mostarErrores.value = true;
@@ -164,3 +136,10 @@ const formIncompleto = (errors) => {
   }
 };
 </script>
+<style>
+.contenedor-flex {
+  display: flex; /* Activamos flexbox */
+  align-items: flex-start; /* Alineamos al inicio verticalmente */
+  gap: 40px; /* Espacio opcional entre los componentes */
+}
+</style>

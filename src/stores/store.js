@@ -5,6 +5,12 @@ import { httpJSONP } from '../helpers/http';
 import { urlParam } from '../helpers/varios';
 
 export const useStore = defineStore('store', () => {
+  // globales que no corresponden a una solicitud concreta
+  const gb = reactive({
+    inicioPrograma: true,
+    viasPago: [],
+  });
+
   const initialState = {
     id: '0', //nº solicitud compra
     tipoSolicitud: '',
@@ -19,19 +25,12 @@ export const useStore = defineStore('store', () => {
     nomProv: '',
     nifProv: '',
     viaPago: '',
-    condPago: '',
-    mismaSocProv: true,
-    detalle: [], //tabla/grid con el detalle
-    solicitudes: [], //tabla/grid  (pantalla principal búsqueda solicitudes)
-    // prioridad: '2', //prioridad media
-    // fecEntrega: '',
-    // fecInicio: '',
-    // fecFin: '',
-    // dirEntrega: '',
-    // contacto: '',
-    // calidad: true,
-    // adjNeg: false,
+    inmovilizado: false,
+    bancos: [],
+    fecha_pago: '',
+    justif_pago: false,
     observa: '',
+    solicitudes: [], //tabla/grid  (pantalla principal búsqueda solicitudes)
     fecDesde: '', //fecha filtro en el listado de SC
     fecHasta: '', //fecha filtro en el listado de SC
     conPedido: '', //filtro en el listado de SC
@@ -120,10 +119,6 @@ export const useStore = defineStore('store', () => {
   const resetData = () => {
     Object.assign(dt, initialState); // hace una copia de initialState en dt
     Object.assign(dtInicial, initialState); // hace una copia de initialState en dtInicial
-    // es necesario inicializar el array del detalle ya que object.assign no llega a ese nivel de profundidad
-    // he probado con json stringfy & parse y otros pero ninguno funciona bien porque pierden la reactividad
-    dt.detalle.length = 0;
-    dtInicial.detalle.length = 0;
   };
 
   const getSolicitud = async (id) => {
@@ -145,31 +140,10 @@ export const useStore = defineStore('store', () => {
       dt.codProv = data.codProv;
       dt.nomProv = data.nomProv;
       dt.nifProv = data.nifProv;
-      dt.fecEntrega = data.fecEntrega;
-      dt.fecInicio = data.fecInicio;
-      dt.fecFin = data.fecFin;
       dt.viaPago = data.viaPago;
-      dt.condPago = data.condPago;
-      dt.mismaSocProv = data.mismaSocProv;
-      dt.portes = data.portes;
-      dt.delegoProv = data.delegoProv === 'X';
       dt.tipoSolicitud = data.tipoSolicitud;
-      dt.prioridad = data.prioridad;
-      dt.dirEntrega = data.dirEntrega;
-      dt.contacto = data.contacto;
-      dt.calidad = data.calidad == 'X';
-      dt.adjNeg = data.adjNeg == 'X';
-      dt.prioridad = data.prioridad;
       dt.observa = data.observa;
       dt.ficheros = data.ficheros;
-      //Obtenemos el detalle si lo hay
-      if (data.detalle !== undefined) {
-        //tiene detalle
-        dt.detalle = [...data.detalle];
-        for (let linea of dt.detalle) {
-          linea.descripcion = linea.descripcion.replaceAll('crlf', '\n');
-        }
-      }
       //copiamos dt en dtInicial
       Object.assign(dtInicial, dt);
     } catch (error) {
@@ -238,18 +212,6 @@ export const useStore = defineStore('store', () => {
     Object.assign(dt, dtBusqueda);
   };
 
-  const ultimaFilaVacia = () => {
-    // la última fila del a-table está pendiente de guardar
-    const det = dt.detalle;
-    return det.length > 0 && det[det.length - 1].cantidad === 0;
-  };
-
-  const total = () => {
-    // Calculamos el total del detalle = Sum(cantidad*precio)
-    const tot = dt.detalle.reduce((total, e) => total + e.cantidad * e.precio, 0);
-    return Number(tot.toFixed(2));
-  };
-
   const guardar = async () => {
     modificada = true;
     const importe = total();
@@ -261,21 +223,11 @@ export const useStore = defineStore('store', () => {
       nomProv: dt.nomProv,
       nifProv: dt.nifProv,
       viaPago: dt.viaPago,
-      condPago: dt.condPago,
-      mismaSocProv: dt.mismaSocProv ? 'X' : '',
-      delegoProv: dt.delegoProv ? 'X' : '',
       tipoPed: dt.tipoSolicitud,
-      prioridad: dt.prioridad,
-      fecEntrega: fechaSap(dt.fecEntrega),
-      fecInicio: fechaSap(dt.fecInicio),
-      fecFin: fechaSap(dt.fecFin),
-      dirEntrega: dt.dirEntrega,
-      contacto: dt.contacto,
-      calidad: dt.calidad ? 'X' : '',
-      adjNeg: dt.adjNeg ? 'X' : '',
       observa: dt.observa,
       portes: dt.tipoSolicitud === 'S' ? dt.portes : '',
       importe,
+      inmovilizado: dt.inmovilizado ? 'X' : '',
       // ficheros: dt.ficheros,
     };
     try {
@@ -290,32 +242,14 @@ export const useStore = defineStore('store', () => {
         nuevaSC = true;
       }
 
-      //grabamos línea a línea del detalle
-      // dt.detalle.forEach(async (e, index) => {... });
-      //! MUY IMPORTANTE - ANTES UTILIZABA UN BUCLE FOREACH PERO NO RESPETABA EL AWAIT, VER DOCUMENTACIÓN
-      //! EN JS.DOCX.  PARA QUE FUNCIONE UTILIZO UN BUCLE FOR
-
-      for (let i = 0; i < dt.detalle.length; i++) {
-        const e = dt.detalle[i];
-        const numPosicion = (i + 1) * 10; //10, 20, 30
-        const payload = {
-          id: dt.id,
-          detPosicion: numPosicion,
-          detCantidad: e.cantidad,
-          detDescrip: lineasTextArea(e.descripcion),
-          detPrecio: e.precio,
-        };
-        const { id } = await httpJSONP(url, payload);
-      }
-
       // Se ha guardado correctamente
       //actualizamos dtInicial con el valor de dt para que al pulsar el botón salir tenga en cuenta si han
       //habido cambios después de pulsar guardar
       Object.assign(dtInicial, dt);
-      message.success(`Se ha ${nuevaSC ? 'creado' : 'guardado'} la solicitud de compra nº ${dt.id}`, 1.5);
+      message.success(`Se ha ${nuevaSC ? 'creado' : 'guardado'} la solicitud de pago nº ${dt.id}`, 1.5);
     } catch (error) {
       console.error('Error en la solicitud:', error);
-      return message.error('Ha habido algun problema al guardar la solicitud de compras', 1.5);
+      return message.error('Ha habido algun problema al guardar la solicitud de pago', 1.5);
     } finally {
       loading.value = false;
     }
@@ -381,17 +315,16 @@ export const useStore = defineStore('store', () => {
   }
 
   return {
+    gb,
     dt,
     aux,
     loading,
     getSolicitudes,
     getSolicitud,
-    ultimaFilaVacia,
     guardar,
     fechaSap,
     localeConfig,
     resetData,
-    total,
     initialState,
     dtInicial,
     dtBusqueda,

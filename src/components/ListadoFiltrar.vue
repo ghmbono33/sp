@@ -89,25 +89,31 @@ const optConPedido = [
   { label: 'Sin Pedido', value: 'N' },
   { label: 'Todos', value: '' },
 ];
-onMounted(async () => {
-  // volver a dejar el filtro que había y además actualiza la tabla si ha habido cambios
-  st.reestablecerFiltroTabla();
-  //obtiene el array de colaboradores, si no es responsable el array estará vacío
-  getColaboradores();
-  //obtiene el array de centros de los que es responsable (p.ej:Jefes de Obra), si no tiene estará vacío
-  getCebesRespon();
-});
+
+// const getCebesRespon = async () => {
+//   const payload = { numcontrol: st.numcontrol };
+//   optCebe.value = await httpJSONP('cebesRespon_jsonp.asp', payload);
+//   if (optCebe.value.length > 0) {
+//     // Tiene asignado algún cebe (ceco o pep) en la ZTCO002, se muestra solo los que tienen solicitudes
+//     // Este filtro se muestra solo a los JO u otros reponsables de centros
+//     // añadimos TODOS al principio para que pueda seleccionarlos todos
+//     //el valor de todos contiene los nombres de usuario separados por comas, ejem: '0075120/U0','0075121/00'
+//     const todos = optCebe.value.map((e) => e.value).join(',');
+//     optCebe.value.unshift({ label: 'TODOS', value: todos });
+//   }
+// };
 
 const getCebesRespon = async () => {
-  const payload = { numcontrol: st.numcontrol };
-  optCebe.value = await httpJSONP('cebesRespon_jsonp.asp', payload);
-  if (optCebe.value.length > 0) {
-    // Tiene asignado algún cebe (ceco o pep) en la ZTCO002, se muestra solo los que tienen solicitudes
-    // Este filtro se muestra solo a los JO u otros reponsables de centros
-    // añadimos TODOS al principio para que pueda seleccionarlos todos
-    //el valor de todos contiene los nombres de usuario separados por comas, ejem: '0075120/U0','0075121/00'
-    const todos = optCebe.value.map((e) => e.value).join(',');
-    optCebe.value.unshift({ label: 'TODOS', value: todos });
+  try {
+    const payload = { numcontrol: st.numcontrol };
+    optCebe.value = await httpJSONP('cebesRespon_jsonp.asp', payload);
+
+    if (optCebe.value.length > 0) {
+      const todos = optCebe.value.map((e) => e.value).join(';');
+      optCebe.value.unshift({ label: 'TODOS', value: todos });
+    }
+  } catch (error) {
+    console.error('Error en getCebesRespon:', error);
   }
 };
 const getColaboradores = async () => {
@@ -133,6 +139,15 @@ const getColaboradores = async () => {
     // }
   }
 };
+
+onMounted(async () => {
+  // volver a dejar el filtro que había y además actualiza la tabla si ha habido cambios
+  st.reestablecerFiltroTabla();
+  //obtiene el array de colaboradores, si no es responsable el array estará vacío
+  getColaboradores();
+  //obtiene el array de centros de los que es responsable (p.ej:Jefes de Obra), si no tiene estará vacío
+  getCebesRespon();
+});
 
 const limpiarFiltroBusqueda = () => {
   Modal.confirm({

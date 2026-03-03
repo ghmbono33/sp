@@ -26,6 +26,31 @@
 <!-- ...................................................... -->
 <script setup>
 import { RouterView } from 'vue-router';
+import { ref, watch, computed, onMounted } from 'vue';
+import { useStore } from './stores/store';
+import { httpJSONP } from './helpers/http';
+
+// Rutas & Store
+const st = useStore();
+
+const inicio = async () => {
+  //Es la  primera función que se ejecuta al cargar la aplicación
+  const vias = await httpJSONP('Busquedas_jsonp.asp', { viasPago: 'X' });
+
+  //Ejemplo  ({vias:'G#P-Confirming Pronto Pago||I#P-Confirming Transferencia||O#P-Transferencias Electrónica'});
+  //Que al pasarlo a st.gb.viasPago será:
+  // [{label:"P-Confirming Pronto Pago", value:"G"}, ...]
+  // de forma que se el array está ordenado por LABEL
+  st.gb.viasPago = vias.vias
+    .split('||')
+    .map((item) => {
+      const [value, label] = item.split('#');
+      return { label: label.trim(), value: value.trim() };
+    })
+    .sort((a, b) => a.label.localeCompare(b.label));
+};
+
+inicio();
 
 //NOTA: Tanto selectedKeys como el route y watch que se muestran a continuación comentado se pueden utilizar junto
 //al a-layout que hay arriba cuando necesitemos un menú con varias opciones. No lo he borrado para que me sirva

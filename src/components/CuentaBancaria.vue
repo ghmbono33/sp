@@ -1,9 +1,9 @@
 <template>
   {{ tipo }}
+  <!-- Selector -->
   <a-form layout="vertical" style="max-width: 700px">
-    <!-- Selector -->
-    <a-form-item label="Cuenta">
-      <a-select v-model:value="tipo">
+    <a-form-item label="Cuenta:">
+      <a-select v-model:value="tipo" style="width: 150px">
         <a-select-option value="ES">Española</a-select-option>
         <a-select-option value="INT">Extranjera</a-select-option>
       </a-select>
@@ -21,25 +21,25 @@
 
         <a-col :span="4">
           <a-form-item label="Banco" :validate-status="statusES.banco" :help="errorsES.banco">
-            <a-input type="number" v-model:value="formES.banco" maxlength="4" class="no-spinner" />
+            <a-input v-model:value="formES.banco" type="number" :controls="false" maxlength="4" class="no-spinner" />
           </a-form-item>
         </a-col>
 
         <a-col :span="4">
           <a-form-item label="Sucursal" :validate-status="statusES.sucursal" :help="errorsES.sucursal">
-            <a-input v-model:value="formES.sucursal" maxlength="4" />
+            <a-input v-model:value="formES.sucursal" type="number" :controls="false" maxlength="4" class="no-spinner" />
           </a-form-item>
         </a-col>
 
         <a-col :span="3">
           <a-form-item label="D.C." :validate-status="statusES.dc" :help="errorsES.dc">
-            <a-input v-model:value="formES.dc" maxlength="2" />
+            <a-input v-model:value="formES.dc" type="number" :controls="false" maxlength="2" class="no-spinner" />
           </a-form-item>
         </a-col>
 
         <a-col :span="6">
           <a-form-item label="Cuenta" :validate-status="statusES.cuenta" :help="errorsES.cuenta">
-            <a-input v-model:value="formES.cuenta" maxlength="10" />
+            <a-input v-model:value="formES.cuenta" type="number" :controls="false" maxlength="10" class="no-spinner" />
           </a-form-item>
         </a-col>
       </a-row>
@@ -50,7 +50,7 @@
     <!-- ========================= -->
     <template v-else>
       <a-form-item label="IBAN" :validate-status="statusINT" :help="errorINT">
-        <a-input v-model:value="ibanINT" maxlength="34" />
+        <a-input v-model:value="ibanINT" maxlength="34" style="width: 300px" />
       </a-form-item>
     </template>
   </a-form>
@@ -156,7 +156,6 @@ function getStatus(error) {
 </script>
 
 <style>
-/* Chrome, Edge, Safari, Opera */
 .no-spinner::-webkit-inner-spin-button,
 .no-spinner::-webkit-outer-spin-button {
   -webkit-appearance: none;

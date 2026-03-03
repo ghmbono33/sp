@@ -24,11 +24,6 @@
       <a-input disabled style="width: 120px" v-model:value="st.dt.nifProv" />
     </a-form-item>
 
-    <!-- Check que si se marca se deshabilitará la posibilidad de introducir el Proveedor -->
-    <a-checkbox v-if="!listado" v-model:checked="st.dt.delegoProv" class="ms-3" @click="delegoCompras"
-      >Delego la elección en compras</a-checkbox
-    >
-
     <!-- Modal del PROVEEDOR -->
     <a-modal
       v-model:visible="modalOpen"
@@ -179,6 +174,7 @@ const formState = reactive({
   codigo: '',
   nombre: '',
   nif: '',
+  bancos: '',
 });
 
 const tituloBoton = computed(() => (st.dt.sociedad || props.listado ? '' : 'Se precisa el Elemento de Imputación'));
@@ -187,29 +183,6 @@ const disabledOpenModal = computed(() => {
   return st.dt.delegoProv || !st.dt.sociedad;
 });
 
-const delegoCompras = () => {
-  //hay que tener en cuenta que al hacer click st.dt.delegoProv todavía tiene el valor anterior
-  //o sea, si estaba en false y lo queremos poner en true todavía vale false, por eso pongo !st.dt.DelegoProv
-  if (!st.dt.delegoProv && st.dt.codProv) {
-    Modal.confirm({
-      title: 'Ya hay un proveedor informado. ¿Continuar? ',
-      // content: "¿Continuar?",
-      okText: 'Sí',
-      okType: 'danger',
-      cancelText: 'No',
-      onOk: () => {
-        // Dejamos en blanco los datos del proveedor
-        // Se puede hacer de ambas formas:
-        // st.dt.codProv = '';  st.dt.nomProv = '';  st.dt.nifProv = '';
-        [st.dt.codProv, st.dt.nomProv, st.dt.nifProv] = Array(3).fill('');
-      },
-      onCancel: () => {
-        // no quiere delegar el proveedor en compras
-        st.dt.delegoProv = false;
-      },
-    });
-  }
-};
 const openModal = (value) => {
   // Eliminamos los posibles opciones por si se hubiera entrado anteriormente
   opciones.value = [];
@@ -225,7 +198,6 @@ const openModal = (value) => {
 
 const fillData = async (tipo) => {
   try {
-    debugger;
     loading.value = true;
     const url = 'Busquedas_JSONP.asp';
     const buscar = tipo === 'C' ? formState.busqCodigo : tipo === 'N' ? formState.busqNombre : formState.busqNIF;
@@ -235,12 +207,6 @@ const fillData = async (tipo) => {
     }
     const payload = { proveedor: tipo + buscar.trim() };
     const data = await httpJSONP(url, payload);
-    //no es necesario ya que tiene la misma estructura..., borrar más adelante
-    // opciones.value = data.map((e) => ({
-    //   codigo: e.codigo /* necesario para el select */,
-    //   nombre: e.nombre /* necesario para el select */,
-    //   nif: e.nif,
-    // }));
     opciones.value = [...data];
   } catch (error) {
     return console.error(error);
@@ -263,6 +229,7 @@ const getInfo = () => {
     formState.codigo = opcion.codigo;
     formState.nombre = opcion.nombre;
     formState.nif = opcion.nif;
+    formState.bancos = opcion.bancos;
   }
 };
 
@@ -283,18 +250,17 @@ const onOk = async () => {
   st.dt.codProv = formState.codigo;
   st.dt.nomProv = formState.nombre;
   st.dt.nifProv = formState.nif;
+  st.dt.bancos = formState.bancos ? formState.bancos.split(',') : [];
   //Comprobamos si existe el proveedor en la sociedad del elemento de imputación
   const url = 'Busquedas_JSONP.asp';
   const payload = { provsoc: st.dt.codProv + ';' + st.dt.sociedad.substr(0, 4) };
   try {
     const data = await httpJSONP(url, payload);
     st.dt.viaPago = '';
-    st.dt.condPago = '';
     st.dt.mismaSocProv = data.existe;
     if (data.existe) {
       //Existe el proveedor en la sociedad, obtenemos la via y condición de pago
       st.dt.viaPago = data.via;
-      st.dt.condPago = data.condicion;
       //mba-09/12/2024 Comprobamos que no esté bloqueado, si lo está no permitirá seleccionarlo
       if (data.bloqueado) {
         return message.error('El proveedor está bloqueado, conctacte con el Dpto de Compras', 2);
