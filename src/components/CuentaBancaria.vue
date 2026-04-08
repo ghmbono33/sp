@@ -1,164 +1,118 @@
 <template>
-  {{ tipo }}
-  <!-- Selector -->
-  <a-form layout="vertical" style="max-width: 700px">
-    <a-form-item label="Cuenta:">
-      <a-select v-model:value="tipo" style="width: 150px">
+  <a-table
+    :columns="columns"
+    :data-source="data"
+    :pagination="false"
+    :scroll="{ y: 200 }"
+    size="small"
+    rowKey="id"
+    style="width: 670px"
+    :row-selection="rowSelection"
+    :locale="st.localeConfig"
+  />
+
+  <div>
+    <a-form-item label="Cuenta">
+      <a-select v-model:value="st.dt.iban_pais" style="width: 150px">
         <a-select-option value="ES">Española</a-select-option>
         <a-select-option value="INT">Extranjera</a-select-option>
       </a-select>
     </a-form-item>
-    <!-- ========================= -->
-    <!-- 🇪🇸 MODO ESPAÑOL -->
-    <!-- ========================= -->
-    <template v-if="tipo === 'ES'">
-      <a-row :gutter="8">
-        <a-col :span="4">
-          <a-form-item label="IBAN" :validate-status="statusES.iban" :help="errorsES.iban">
-            <a-input v-model:value="formES.iban" maxlength="4" placeholder="ES00" />
-          </a-form-item>
-        </a-col>
+    <div class="componente-inline">
+      <!-- 🇪🇸 MODO ESPAÑOL -->
+      <template v-if="st.dt.iban_pais === 'ES'">
+        <a-form-item label="IBAN">
+          <a-input v-model:value="st.dt.iban_iban" maxlength="4" placeholder="ES00" style="width: 80px" />
+        </a-form-item>
+        <a-form-item label="Banco">
+          <a-input v-model:value="st.dt.iban_banco" maxlength="4" style="width: 80px" />
+        </a-form-item>
+        <a-form-item label="Sucursal">
+          <a-input v-model:value="st.dt.iban_sucursal" maxlength="4" style="width: 80px" />
+        </a-form-item>
+        <a-form-item label="D.C.">
+          <a-input v-model:value="st.dt.iban_dc" maxlength="2" style="width: 60px" />
+        </a-form-item>
+        <a-form-item label="Cuenta">
+          <a-input v-model:value="st.dt.iban_cuenta" maxlength="10" style="width: 120px" />
+        </a-form-item>
+      </template>
 
-        <a-col :span="4">
-          <a-form-item label="Banco" :validate-status="statusES.banco" :help="errorsES.banco">
-            <a-input v-model:value="formES.banco" type="number" :controls="false" maxlength="4" class="no-spinner" />
-          </a-form-item>
-        </a-col>
-
-        <a-col :span="4">
-          <a-form-item label="Sucursal" :validate-status="statusES.sucursal" :help="errorsES.sucursal">
-            <a-input v-model:value="formES.sucursal" type="number" :controls="false" maxlength="4" class="no-spinner" />
-          </a-form-item>
-        </a-col>
-
-        <a-col :span="3">
-          <a-form-item label="D.C." :validate-status="statusES.dc" :help="errorsES.dc">
-            <a-input v-model:value="formES.dc" type="number" :controls="false" maxlength="2" class="no-spinner" />
-          </a-form-item>
-        </a-col>
-
-        <a-col :span="6">
-          <a-form-item label="Cuenta" :validate-status="statusES.cuenta" :help="errorsES.cuenta">
-            <a-input v-model:value="formES.cuenta" type="number" :controls="false" maxlength="10" class="no-spinner" />
-          </a-form-item>
-        </a-col>
-      </a-row>
-    </template>
-
-    <!-- ========================= -->
-    <!-- 🌍 MODO INTERNACIONAL -->
-    <!-- ========================= -->
-    <template v-else>
-      <a-form-item label="IBAN" :validate-status="statusINT" :help="errorINT">
-        <a-input v-model:value="ibanINT" maxlength="34" style="width: 300px" />
-      </a-form-item>
-    </template>
-  </a-form>
+      <!-- 🌍 MODO INTERNACIONAL -->
+      <template v-else>
+        <a-form-item label="IBAN">
+          <a-input v-model:value="st.dt.iban" maxlength="34" style="width: 300px" />
+        </a-form-item>
+      </template>
+    </div>
+  </div>
 </template>
 
 <script setup>
+/* ---------------- 1️⃣ Importaciones ---------------- */
 import { ref, reactive, computed, watch } from 'vue';
+import { useStore } from '../stores/store.js';
+const st = useStore();
 
-const tipo = ref('ES');
+const selectedRowKeys = ref([]); // IDs de filas seleccionadas en la tabla
 
-/* =========================
-   🇪🇸 FORMULARIO ESPAÑA
-========================= */
+/* ---------------- 3️⃣ Computed y estructuras derivadas ---------------- */
+const columns = [
+  { title: 'IBAN', dataIndex: 'iban' },
+  { title: 'Banco', dataIndex: 'banco' },
+  { title: 'Sucursal', dataIndex: 'sucursal' },
+  { title: 'D.C.', dataIndex: 'dc' },
+  { title: 'Nº Cuenta', dataIndex: 'cuenta' },
+];
 
-const formES = reactive({
-  iban: '',
-  banco: '',
-  sucursal: '',
-  dc: '',
-  cuenta: '',
+// Función para transformar un IBAN completo en objeto fila
+const parseIBANToRow = (ibanCompleto, id) => ({
+  id,
+  iban: ibanCompleto.slice(0, 4),
+  banco: ibanCompleto.slice(4, 8),
+  sucursal: ibanCompleto.slice(8, 12),
+  dc: ibanCompleto.slice(12, 14),
+  cuenta: ibanCompleto.slice(14, 24),
 });
 
-const errorsES = reactive({
-  iban: '',
-  banco: '',
-  sucursal: '',
-  dc: '',
-  cuenta: '',
-});
+const data = computed(() => st.dt.bancos.map((ibanCompleto, index) => parseIBANToRow(ibanCompleto, index + 1)));
 
-watch(formES, validarES, { deep: true });
+const rowSelection = computed(() => ({
+  type: 'radio',
+  selectedRowKeys: selectedRowKeys.value,
+  onChange: (keys, selectedRows) => {
+    selectedRowKeys.value = keys;
+    seleccionarBanco(selectedRows[0]);
+  },
+}));
 
-function validarES() {
-  Object.keys(errorsES).forEach((k) => (errorsES[k] = ''));
-
-  if (!/^ES\d{2}$/.test(formES.iban)) errorsES.iban = 'Debe ser ES + 2 dígitos';
-
-  if (!/^\d{4}$/.test(formES.banco)) errorsES.banco = '4 dígitos';
-
-  if (!/^\d{4}$/.test(formES.sucursal)) errorsES.sucursal = '4 dígitos';
-
-  if (!/^\d{2}$/.test(formES.dc)) errorsES.dc = '2 dígitos';
-
-  if (!/^\d{10}$/.test(formES.cuenta)) errorsES.cuenta = '10 dígitos';
-
-  if (Object.values(errorsES).some((e) => e)) return;
-
-  const completo = formES.iban + formES.banco + formES.sucursal + formES.dc + formES.cuenta;
-
-  if (!mod97(completo)) errorsES.iban = 'IBAN español no válido';
-}
-
-const statusES = {
-  iban: computed(() => getStatus(errorsES.iban)),
-  banco: computed(() => getStatus(errorsES.banco)),
-  sucursal: computed(() => getStatus(errorsES.sucursal)),
-  dc: computed(() => getStatus(errorsES.dc)),
-  cuenta: computed(() => getStatus(errorsES.cuenta)),
+/* ---------------- 4️⃣ Funciones principales ---------------- */
+const seleccionarBanco = (selectedRow) => {
+  if (!selectedRow) return;
+  if (selectedRow.iban.substring(0, 2) === 'ES') {
+    st.dt.iban_pais = 'ES';
+    st.dt.iban_iban = selectedRow.iban;
+    st.dt.iban_banco = selectedRow.banco;
+    st.dt.iban_sucursal = selectedRow.sucursal;
+    st.dt.iban_dc = selectedRow.dc;
+    st.dt.iban_cuenta = selectedRow.cuenta;
+  } else {
+    st.dt.iban_pais = 'INT';
+    ibanINT.value = selectedRow.iban + selectedRow.banco + selectedRow.sucursal + selectedRow.dc + selectedRow.cuenta;
+  }
 };
 
-/* =========================
-   🌍 FORMULARIO INTERNACIONAL
-========================= */
-
-const ibanINT = ref('');
-const errorINT = ref('');
-
-watch(ibanINT, validarINT);
-
-function validarINT() {
-  errorINT.value = '';
-  if (!ibanINT.value) return;
-
-  const clean = ibanINT.value.replace(/\s+/g, '').toUpperCase();
-
-  if (!/^[A-Z]{2}\d{2}[A-Z0-9]+$/.test(clean)) {
-    errorINT.value = 'Formato incorrecto';
-    return;
-  }
-
-  if (!mod97(clean)) errorINT.value = 'IBAN no válido';
-}
-
-const statusINT = computed(() => getStatus(errorINT.value));
-
-/* =========================
-   UTILIDADES
-========================= */
-
-function mod97(iban) {
-  const rearranged = iban.slice(4) + iban.slice(0, 4);
-  const numeric = rearranged
-    .split('')
-    .map((c) => (isNaN(c) ? c.charCodeAt(0) - 55 : c))
-    .join('');
-  return BigInt(numeric) % 97n === 1n;
-}
-
-function getStatus(error) {
-  if (!error) return '';
-  return 'error';
-}
+/* ---------------- 5️⃣ Watchers y efectos secundarios ---------------- */
+watch(
+  () => st.dt.bancos,
+  (bancos) => {
+    if (bancos && bancos.length === 1) {
+      // Si solo hay una cuenta bancaria, la seleccionamos automáticamente
+      const row = parseIBANToRow(bancos[0], 1);
+      selectedRowKeys.value = [row.id];
+      seleccionarBanco(row);
+    }
+  },
+  { immediate: true },
+);
 </script>
-
-<style>
-.no-spinner::-webkit-inner-spin-button,
-.no-spinner::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-</style>

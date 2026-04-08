@@ -9,13 +9,14 @@ export const useStore = defineStore('store', () => {
   const gb = reactive({
     inicioPrograma: true,
     viasPago: [],
+    optSociedades: [],
   });
 
   const initialState = {
     id: '0', //nº solicitud compra
-    tipoSolicitud: '',
+    tipoSolicitud: '', //1 pago factura, 2 pago anticipado, 3 aportación UTE, 4 otros
+    textoTipoSolicitud: '',
     importe: 0,
-    imputacion: '',
     fecSolicitud: fechaSolicitud(),
     sociedad: '',
     tipoImputacion: '',
@@ -23,11 +24,20 @@ export const useStore = defineStore('store', () => {
     textoElementoImputacion: '',
     codProv: '',
     nomProv: '',
+    receptor_pago: '',
     nifProv: '',
     viaPago: '',
+    estado: '',
     inmovilizado: false,
     bancos: [],
-    fecha_pago: '',
+    iban: '',
+    iban_pais: 'ES',
+    iban_iban: '',
+    iban_banco: '',
+    iban_sucursal: '',
+    iban_dc: '',
+    iban_cuenta: '',
+    fec_pago: '',
     justif_pago: false,
     observa: '',
     solicitudes: [], //tabla/grid  (pantalla principal búsqueda solicitudes)
@@ -52,6 +62,13 @@ export const useStore = defineStore('store', () => {
   const localeConfig = {
     emptyText: 'No hay entradas', // Texto que se mostrará cuando la tabla está vacía
   };
+
+  const opcTipoSolicitud = [
+    { label: 'Pago de Factura', value: '1' },
+    { label: 'Pago anticipado a proveedores', value: '2' },
+    { label: 'Aportación UTES', value: '3' },
+    { label: 'Otros', value: '4' },
+  ];
 
   //Columnas del listado de solicitudes
   const colSolicitudes = [
@@ -129,10 +146,13 @@ export const useStore = defineStore('store', () => {
     const payload = { id };
     try {
       const datos = await httpJSONP(url, payload);
+      debugger;
       const data = datos[0];
       dt.id = id;
+      dt.tipoSolicitud = data.tipoSolPago;
       dt.fecSolicitud = data.fecSolicitud;
       dt.numPedido = data.numPedido;
+      dt.importe = data.importe;
       dt.tipoImputacion = data.tipoImp;
       dt.elementoImputacion = data.elemImp;
       dt.textoElementoImputacion = data.txtElemImp;
@@ -141,9 +161,27 @@ export const useStore = defineStore('store', () => {
       dt.nomProv = data.nomProv;
       dt.nifProv = data.nifProv;
       dt.viaPago = data.viaPago;
-      dt.tipoSolicitud = data.tipoSolicitud;
       dt.observa = data.observa;
       dt.ficheros = data.ficheros;
+      dt.fec_pago = data.fec_pago;
+      dt.justif_pago = data.justif_pago === 'X';
+      dt.inmovilizado = data.inmovilizado === 'X';
+      dt.estado = data.estado;
+      dt.receptor_pago = data.receptor_pago;
+
+      //Datos de las cuentas bancarias del proveedor, accedemos por código y nos quedamos con el primer resultado ya que el código de proveedor es único
+      const pload = { proveedor: 'C' + dt.codProv };
+      const datos_prov = await httpJSONP('busquedas_jsonp.asp', pload);
+      dt.bancos = datos_prov[0].bancos ? datos_prov[0].bancos.split(',') : [];
+      // Cuenta bancaria introducida/seleccionada por el usuario
+      if (dt.iban.trim() === '') {
+        dt.iban_iban = data.iban.slice(0, 4);
+        dt.iban_banco = data.iban.slice(4, 8);
+        dt.iban_sucursal = data.iban.slice(8, 12);
+        dt.iban_dc = data.iban.slice(12, 14);
+        dt.iban_cuenta = data.iban.slice(14, 24);
+      }
+
       //copiamos dt en dtInicial
       Object.assign(dtInicial, dt);
     } catch (error) {
@@ -214,20 +252,29 @@ export const useStore = defineStore('store', () => {
 
   const guardar = async () => {
     modificada = true;
-    const importe = total();
+    debugger;
+    const textoTipoSolicitud = opcTipoSolicitud.find((o) => o.value === dt.tipoSolicitud)?.label || '';
     const payload = {
       id: dt.id,
+      importe: dt.importe,
+      numpedido: dt.numPedido,
       tipoImp: dt.tipoImputacion,
       elemImp: dt.elementoImputacion,
+      sociedad: dt.sociedad.substring(0, 4),
       codProv: dt.codProv,
-      nomProv: dt.nomProv,
+      nomprov: dt.nomProv,
       nifProv: dt.nifProv,
+      receptor_pago: dt.receptor_pago,
+      estado: dt.estado,
       viaPago: dt.viaPago,
-      tipoPed: dt.tipoSolicitud,
+      tipoSolPago: dt.tipoSolicitud,
+      iban: dt.iban,
       observa: dt.observa,
-      portes: dt.tipoSolicitud === 'S' ? dt.portes : '',
-      importe,
       inmovilizado: dt.inmovilizado ? 'X' : '',
+      justif_pago: dt.justif_pago ? 'X' : '',
+      fec_pago: fechaSap(dt.fec_pago),
+      textoImputacion: dt.textoElementoImputacion,
+      textoTipoSolicitud: textoTipoSolicitud,
       // ficheros: dt.ficheros,
     };
     try {
@@ -331,5 +378,6 @@ export const useStore = defineStore('store', () => {
     reestablecerFiltroTabla,
     colSolicitudes,
     numcontrol,
+    opcTipoSolicitud,
   };
 });

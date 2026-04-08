@@ -267,13 +267,6 @@ const subirFicheros = async () => {
   // Comprobamos que haya algún archivo
   if (archivos.length === 0) return mensaje('No hay ningún fichero que subir');
 
-  // const respuesta = await pregunta(
-  //   'Tras subir los ficheros no podrás eliminar ninguno más. ¿Subir ficheros? ',
-  //   true
-  // );
-  // if (!respuesta) return;
-
-  // const habianFicheros = hayFicheros;
   if (esLocal()) alert('Estamos en desarrollo. No funciona la subida de archivos');
   // let indice = 0;
   if (hayFicheros) {

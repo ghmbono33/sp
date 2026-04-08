@@ -1,4 +1,5 @@
 <template>
+  {{ st.dt.receptor_pago }}
   <!-- <div :class="{ disabled: st.dt.numPedido }"> -->
   <div>
     <!-- Si tiene pedido estará inhabilidado -->
@@ -13,28 +14,42 @@
       @finish="validaciones"
       @finishFailed="formIncompleto"
     >
+      <div class="componente-inline">
+        <a-form-item
+          name="tipoSolicitud"
+          label="Tipo Solicitud"
+          :rules="[{ required: true, message: 'Campo obligatorio' }]"
+        >
+          <a-select
+            v-model:value="st.dt.tipoSolicitud"
+            :options="st.opcTipoSolicitud"
+            placeholder="Selecciona opción"
+            style="width: 230px"
+          >
+          </a-select>
+        </a-form-item>
+      </div>
+
       <!-- Los divs son necesarios para crear el salto de línea, de lo contrario si se cambiara la resolución saldrían juntos -->
-      <div>
-        <TipoSolicitud />
-      </div>
-      <div>
-        <ImputacionSociedad />
-      </div>
-      <div>
-        <!-- <DireccionContacto /> -->
-      </div>
-      <div>
-        <ProveedorCompras />
-      </div>
-      <div class="contenedor-flex">
-        <CuentasProveedor />
-        <CuentaBancaria />
-      </div>
-      <div>
-        <Observaciones />
-      </div>
-      <LogErrores v-if="mostarErrores" @ocultarLogErrores="ocultarLogErrores" :errores="errValidacion"></LogErrores>
-      <UploadFiles />
+      <template v-if="st.dt.tipoSolicitud !== ''">
+        <div>
+          <ImportePedido />
+        </div>
+        <div>
+          <ImputacionSociedad />
+        </div>
+        <div>
+          <ProveedorCompras />
+        </div>
+        <div class="contenedor-flex">
+          <CuentaBancaria />
+        </div>
+        <div>
+          <Observaciones />
+        </div>
+        <LogErrores v-if="mostarErrores" @ocultarLogErrores="ocultarLogErrores" :errores="errValidacion"></LogErrores>
+        <UploadFiles />
+      </template>
       <GuardarSalir />
     </a-form>
   </div>
@@ -112,10 +127,70 @@ const ocultarLogErrores = () => {
   mostarErrores.value = false;
 };
 
+const validarIBAN = () => {
+  // Si el IBAN es correcto devolverá una cadena vacía, si no devolverá el mensaje de error correspondiente
+  if (st.dt.iban_pais === 'ES') {
+    st.dt.iban = st.dt.iban_iban + st.dt.iban_banco + st.dt.iban_sucursal + st.dt.iban_dc + st.dt.iban_cuenta;
+    if (st.dt.iban.trim() === '') {
+      return '';
+    }
+    if (!mod97(st.dt.iban)) return 'IBAN no válido';
+  } else {
+    st.dt.iban = st.dt.iban.replace(/\s+/g, '').toUpperCase();
+    if (st.dt.iban.trim() === '') {
+      return '';
+    }
+    if (!/^[A-Z]{2}\d{2}[A-Z0-9]+$/.test(st.dt.iban)) {
+      return 'Formato IBAN incorrecto';
+    }
+    if (!mod97(st.dt.iban)) return 'IBAN no válido';
+  }
+  return '';
+};
+
+function mod97(iban) {
+  const rearranged = iban.slice(4) + iban.slice(0, 4);
+  const numeric = rearranged
+    .split('')
+    .map((c) => (isNaN(c) ? c.charCodeAt(0) - 55 : c))
+    .join('');
+  return BigInt(numeric) % 97n === 1n;
+}
+
 const validaciones = () => {
   // Las validaciones realizadas con rules en el formulario son correctas
   // Comprobamos otras validaciones
   errValidacion = [];
+
+  // Empresa obligatoria
+  if (st.dt.sociedad.trim() === '') errValidacion.push('Falta indicar la sociedad');
+  // Si el tipo de solicitud es "P=P"
+  switch (st.dt.tipoSolicitud) {
+    case '1': // Pago de Factura, es obligatorio el elemento de imputación a menos que sea inmovilizado
+      if (st.dt.elementoImputacion.trim() === '' && !st.dt.inmovilizado)
+        errValidacion.push('Falta indicar el elemento de imputación');
+    case '2': // Pago anticipado a proveedores
+      break;
+    case '3': // Aportación UTES
+      break;
+    case '4': // Otros
+      break;
+  }
+
+  //	Para tiposolicitud = 1 es oblgatorio el pedido si el importe es igual o superior a 3000€
+  if (st.dt.tipoSolicitud === '1' && st.dt.importe >= 3000 && st.dt.numPedido.trim() === '') {
+    errValidacion.push('Para importes iguales o superiores a 3.000€ debe de indicar el  Nº de Pedido.');
+    st.dt.tipoImputacion = 'P';
+  }
+
+  //Si se ha seleccionado via pago = "O" (Transferencia electrónica) es necesario que se haya seleccionado una cuenta bancaria
+  //El cálculo del IBAN se hace en validarIBAN, aunque no tenga via de pago transferencia electrónica, si se ha indicado el IBAN se validará igualmente
+  const ibanError = validarIBAN();
+  if (ibanError) errValidacion.push(ibanError);
+  if (st.dt.viaPago === 'O' && st.dt.iban.trim() === '') {
+    errValidacion.push('Para la vía de pago "Transferencia electrónica" debe indicar el IBAN');
+  }
+
   //Mostramos el modal con los errores, es necesario ya que con el modal.error no funcionan los saltos de línea
   if (errValidacion.length > 0) {
     mostarErrores.value = true;

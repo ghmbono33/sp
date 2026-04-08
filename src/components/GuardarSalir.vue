@@ -2,12 +2,13 @@
   <div class="center">
     <!-- G U A R D A R -->
     <a-button
+      v-if="st.dt.tipoSolicitud !== ''"
       size="large"
       type="primary"
       html-type="submit"
       shape="round"
       class="ant-outlined-success"
-      :disabled="!!st.dt.numPedido || st.dt.guardando || cambiosGuardados"
+      :disabled="st.dt.guardando || cambiosGuardados"
     >
       <template #icon>
         <SaveOutlined style="position: relative; top: -2px" />

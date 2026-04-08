@@ -3,27 +3,34 @@
     <!-- Botón que abre el modal para buscar al proveedor -->
     <!-- Deberá de haberse seleccionado antes el elemento de imputación para conocer la sociedad -->
 
-    <a-button @click="openModal" :disabled="disabledOpenModal" :title="tituloBoton" class="ant-outlined-indigo me-3">
-      Proveedor
+    <a-button @click="openModal" :disabled="proveedorDisabled" class="ant-outlined-indigo me-3">
+      {{ tituloProveedor }}
       <template #icon>
         <SearchOutlined style="position: relative; top: -2px" />
       </template>
     </a-button>
     <!-- Mostramos la información seleccionada en el modal -->
+
     <!-- Código -->
-    <a-form-item label="Código" name="codProv" :rules="[{ required: !st.dt.delegoProv && !props.listado }]">
-      <a-input disabled v-model:value="st.dt.codProv" style="width: 120px; margin-left: 10px" />
-    </a-form-item>
-    <!-- Nombre -->
-    <a-form-item label="Nombre">
-      <a-input disabled style="width: 380px" v-model:value="st.dt.nomProv" />
-    </a-form-item>
+    <template v-if="st.dt.receptor_pago.trim() === ''">
+      <a-form-item label="Código" name="codProv" :rules="[{ required: !props.listado && st.dt.tipoSolicitud !== '4' }]">
+        <a-input disabled v-model:value="st.dt.codProv" style="width: 120px; margin-left: 10px" />
+      </a-form-item>
+      <!-- Nombre -->
+      <a-form-item label="Nombre">
+        <a-input disabled style="width: 380px" v-model:value="st.dt.nomProv" />
+      </a-form-item>
 
-    <!-- NIF -->
-    <a-form-item label="NIF">
-      <a-input disabled style="width: 120px" v-model:value="st.dt.nifProv" />
-    </a-form-item>
-
+      <!-- NIF -->
+      <a-form-item label="NIF">
+        <a-input disabled style="width: 120px" v-model:value="st.dt.nifProv" />
+      </a-form-item>
+    </template>
+    <template v-else>
+      <a-form-item label="Receptor del Pago">
+        <a-input disabled v-model:value="st.dt.receptor_pago" />
+      </a-form-item>
+    </template>
     <!-- Modal del PROVEEDOR -->
     <a-modal
       v-model:visible="modalOpen"
@@ -100,11 +107,6 @@
         </a-form-item>
         <!-- La posibilidad de crear un nuevo cliente solo estará en la SC no en el listado -->
         <template v-if="!listado">
-          <div style="text-align: center">
-            <button @click="nuevoProv" type="button" class="btn btn-sm btn-outline-success margen-negativo">
-              + Nuevo Proveedor
-            </button>
-          </div>
           <!-- DATOS DEL PROVEEDOR  -->
           <a-input-group compact>
             <a-form-item label="Código" name="codigo">
@@ -131,6 +133,20 @@
               />
             </a-form-item>
           </a-input-group>
+
+          <a-form-item
+            v-if="st.dt.tipoSolicitud === '4' && formState.nombre === ''"
+            label="Receptor Pago"
+            name="receptor_pago"
+          >
+            <a-input
+              v-model:value="st.dt.receptor_pago"
+              @keydown.enter.prevent
+              ref="receptor_pago"
+              style="width: 420px"
+              class="me-2"
+            />
+          </a-form-item>
         </template>
       </a-form>
     </a-modal>
@@ -145,7 +161,6 @@
 import { SearchOutlined } from '@ant-design/icons-vue';
 import { Modal, message } from 'ant-design-vue';
 import { computed, reactive, ref, nextTick } from 'vue';
-import { validarDNI, validarNif } from '../helpers/dniNif';
 import { httpJSONP } from '../helpers/http';
 // Pinia
 import { useStore } from '../stores/store.js';
@@ -159,7 +174,6 @@ const props = defineProps({
   },
 });
 const loading = ref(false);
-const nomProv = ref();
 const formRef = ref();
 const opciones = ref([]);
 const disabledSelect = ref(true);
@@ -177,13 +191,33 @@ const formState = reactive({
   bancos: '',
 });
 
-const tituloBoton = computed(() => (st.dt.sociedad || props.listado ? '' : 'Se precisa el Elemento de Imputación'));
+const tituloProveedor = computed(() => {
+  return st.dt.tipoSolicitud === '4' ? 'Proveedor/Receptor de Pago' : 'Proveedor';
+});
+const proveedorDisabled = computed(() => {
+  // No dejamos seleccionar elemento de imputación si es tipo 1 y el importe es mayor o igual a 3000 o si no se ha indicado el número de pedido
+  // return props.listado || st.dt.numPedido.trim() !== '' || (st.dt.tipoSolicitud === '1' && st.dt.importe >= 3000);
+  return props.listado;
+});
+
 const disabledOpenModal = computed(() => {
-  if (props.listado) return false; //Estará habilitado en el listado
-  return st.dt.delegoProv || !st.dt.sociedad;
+  if (props.listado) return false;
+  return !st.dt.sociedad;
 });
 
 const openModal = (value) => {
+  if (st.dt.numPedido.trim() !== '') {
+    return message.error('No es posible modificar el proveedor porque tiene un pedido asignado', 3);
+  }
+
+  // No dejamos seleccionar proveedor si es tipo 1 y el importe es mayor o igual a 3000  ya que debe tener un pedido asociado
+  if (st.dt.tipoSolicitud === '1' && st.dt.importe >= 3000) {
+    return message.error(
+      'Tipo Solicitud "Pago Factura" con importe mayor o igual a 3000, debe indicar un número de pedido',
+      3,
+    );
+  }
+
   // Eliminamos los posibles opciones por si se hubiera entrado anteriormente
   opciones.value = [];
   modalOpen.value = true;
@@ -208,6 +242,18 @@ const fillData = async (tipo) => {
     const payload = { proveedor: tipo + buscar.trim() };
     const data = await httpJSONP(url, payload);
     opciones.value = [...data];
+    if (opciones.value.length === 0 && st.dt.tipoSolicitud === '4' && formState.busqNombre.trim() !== '') {
+      Modal.confirm({
+        title: 'o se han encontrado proveedores con este nombre ¿Quieres asignarlo a Receptor del Pago?',
+        okText: 'Sí',
+        okType: 'danger',
+        cancelText: 'No',
+        onOk: () => {
+          st.dt.receptor_pago = formState.busqNombre.trim();
+        },
+        onCancel: () => {},
+      });
+    }
   } catch (error) {
     return console.error(error);
   } finally {
@@ -230,23 +276,28 @@ const getInfo = () => {
     formState.nombre = opcion.nombre;
     formState.nif = opcion.nif;
     formState.bancos = opcion.bancos;
+    // Si el tipo de solicitud es 4 y se había indicado el gestor de pago lo eliminaremos
+    if (st.dt.tipoSolicitud === '4') {
+      st.dt.receptor_pago = '';
+    }
   }
-};
-
-const nuevoProv = () => {
-  formRef.value.resetFields();
-  formState.codigo = 'NUEVO';
-  disabledCpos.value = false;
-  nextTick(
-    () => nomProv.value.focus(), //foco al código de pro
-  );
 };
 
 const onOk = async () => {
   // Al pulsar el botón de Aceptar del Modal
-  if (!formState.codigo || !formState.nombre || !formState.nif) {
+  debugger;
+  if ((!formState.codigo || !formState.nombre || !formState.nif) && !st.dt.receptor_pago) {
     return message.error('Datos del proveedor incompletos', 1.5);
   }
+  // Dejamos en blanco los datos del banco por si anteriormente estuvieran grabados y se cambiara de proveedor
+  st.dt.iban = '';
+  st.dt.iban_pais = 'ES';
+  st.dt.iban_iban = '';
+  st.dt.iban_banco = '';
+  st.dt.iban_sucursal = '';
+  st.dt.iban_dc = '';
+  st.dt.iban_cuenta = '';
+  
   st.dt.codProv = formState.codigo;
   st.dt.nomProv = formState.nombre;
   st.dt.nifProv = formState.nif;
@@ -256,14 +307,14 @@ const onOk = async () => {
   const payload = { provsoc: st.dt.codProv + ';' + st.dt.sociedad.substr(0, 4) };
   try {
     const data = await httpJSONP(url, payload);
-    st.dt.viaPago = '';
-    st.dt.mismaSocProv = data.existe;
     if (data.existe) {
-      //Existe el proveedor en la sociedad, obtenemos la via y condición de pago
-      st.dt.viaPago = data.via;
       //mba-09/12/2024 Comprobamos que no esté bloqueado, si lo está no permitirá seleccionarlo
       if (data.bloqueado) {
         return message.error('El proveedor está bloqueado, conctacte con el Dpto de Compras', 2);
+      }
+    } else {
+      if (st.dt.sociedad && st.dt.receptor_pago.trim() === '') {
+        message.warning('El proveedor no pertenece a la sociedad del elemento de imputación', 2);
       }
     }
     modalOpen.value = false; //Cerramos el modal

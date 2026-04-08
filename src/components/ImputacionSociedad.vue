@@ -1,25 +1,37 @@
 <template>
   <div :class="listado ? 'componente-inline-listado' : 'componente-inline'">
+    <!-- <a-button @click="openModal" class="ant-outlined-indigo me-3" :disabled="elemImputacionDisabled"> -->
     <a-button @click="openModal" class="ant-outlined-indigo me-3">
       Elemento Imputación
       <template #icon>
         <SearchOutlined style="position: relative; top: -2px" />
       </template>
     </a-button>
-
-    <a-form-item label="" name="textoElementoImputacion" :rules="[{ required: true, message: 'Campo obligatorio' }]">
+    <a-form-item label="" name="textoElementoImputacion">
       <a-input disabled v-model:value="st.dt.textoElementoImputacion" style="width: 400px; margin-left: 10px" />
     </a-form-item>
 
     <a-form-item label="Sociedad">
-      <a-input disabled style="width: 260px" v-model:value="st.dt.sociedad" />
+      <div class="componente-inline-listado">
+        <template v-if="st.dt.elementoImputacion === '' && st.dt.tipoSolicitud !== '1'">
+          <a-select
+            v-if="st.dt.elementoImputacion === ''"
+            v-model:value="st.dt.sociedad"
+            show-search
+            style="width: 300px; height: 35px"
+            :options="st.gb.optSociedades"
+            :filter-option="filterOption"
+            :notFoundContent="''"
+          ></a-select>
+        </template>
+        <template v-else>
+          <a-input disabled style="width: 300px; height: 35px" v-model:value="st.dt.sociedad" />
+        </template>
+      </div>
     </a-form-item>
     <template v-if="!listado">
       <a-form-item label="Nº Solicitud">
         <a-input disabled style="width: 75px" v-model:value="st.dt.id" />
-      </a-form-item>
-      <a-form-item label="Nº Pedido">
-        <a-input type="text" disabled style="width: 120px" v-model:value="st.dt.numPedido" />
       </a-form-item>
     </template>
     <!-- Modal para obtener el elemento de imputación -->
@@ -151,6 +163,17 @@ const hayTipoSelec = computed(() => {
 });
 
 const openModal = () => {
+  if (st.dt.numPedido.trim() !== '') {
+    return message.error('No es posible modificar la imputación porque tiene un pedido asignado', 3);
+  }
+  // No dejamos seleccionar elemento de imputación si es tipo 1 y el importe es mayor o igual a 3000  ya que debe tener un pedido asociado
+  if (st.dt.tipoSolicitud === '1' && st.dt.importe >= 3000) {
+    return message.error(
+      'Tipo Solicitud "Pago Factura" con importe mayor o igual a 3000, debe indicar un número de pedido',
+      3,
+    );
+  }
+
   // Eliminamos los posibles opciones por si se hubiera entrado anteriormente
   opciones.value = [];
   modalOpen.value = true;
@@ -211,6 +234,12 @@ const changeTipoImputacion = () => {
   // enviamos el foco al código a buscar
   nextTick(() => refBuscarImputacion.value.focus());
 };
+
+const filterOption = (input, option) => {
+  // Filtramos opciones del combo que contengan el texto introducido
+  return option.label.toLowerCase().indexOf(input.toLowerCase()) >= 0;
+};
+
 const onOk = async () => {
   try {
     // lanzamos las validaciones

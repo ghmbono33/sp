@@ -26,7 +26,6 @@
 <!-- ...................................................... -->
 <script setup>
 import { RouterView } from 'vue-router';
-import { ref, watch, computed, onMounted } from 'vue';
 import { useStore } from './stores/store';
 import { httpJSONP } from './helpers/http';
 
@@ -35,12 +34,19 @@ const st = useStore();
 
 const inicio = async () => {
   //Es la  primera función que se ejecuta al cargar la aplicación
+
+  //Obtenemos las sociedades
+  const socs = await httpJSONP('Busquedas_jsonp.asp', { sociedades: 'X' });
+  debugger;
+  st.gb.optSociedades = socs.map((soc) => ({ label: soc.nomsociedad, value: soc.sociedad }));
+
+  //Obtenemos las vías de pago
   const vias = await httpJSONP('Busquedas_jsonp.asp', { viasPago: 'X' });
 
   //Ejemplo  ({vias:'G#P-Confirming Pronto Pago||I#P-Confirming Transferencia||O#P-Transferencias Electrónica'});
   //Que al pasarlo a st.gb.viasPago será:
   // [{label:"P-Confirming Pronto Pago", value:"G"}, ...]
-  // de forma que se el array está ordenado por LABEL
+  // de forma que  el array está ordenado por LABEL
   st.gb.viasPago = vias.vias
     .split('||')
     .map((item) => {
