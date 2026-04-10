@@ -20,8 +20,8 @@
       />
     </a-form-item>
 
-    <!-- Nº Pedido -->
-    <a-form-item name="numpedido" label="Nº Pedido">
+    <!-- Nº Pedido, no se muestra en solicitudes de tipo 3 Aportaciones UTES -->
+    <a-form-item v-if="st.dt.tipoSolicitud !== '3'" name="numpedido" label="Nº Pedido">
       <a-input
         v-model:value="st.dt.numPedido"
         style="width: 110px"
@@ -31,17 +31,44 @@
       />
     </a-form-item>
     <Loader :loading="loading" />
-    <a-form-item v-if="st.dt.inmovilizado" name="inmovilizado" label="Inmovilizado">
+    <!-- Empresas pagadora y destinataria (solo para solicitudes de tipo 3 Aportaciones UTES) -->
+    <a-form-item
+      label="Empresa pagadora"
+      name="soc_pagadora"
+      v-if="st.dt.tipoSolicitud === '3'"
+      :rules="[{ required: true, message: 'Campo obligatorio' }]"
+    >
+      <a-select
+        v-model:value="st.dt.soc_pagadora"
+        show-search
+        style="width: 250px; height: 35px"
+        :options="st.gb.optSociedadesNoUTE"
+        :filter-option="filterOption"
+        :notFoundContent="''"
+      ></a-select>
+    </a-form-item>
+    <a-form-item
+      label="Empresa UTE destinaria"
+      name="soc_destinataria"
+      v-if="st.dt.tipoSolicitud === '3'"
+      :rules="[{ required: true, message: 'Campo obligatorio' }]"
+    >
+      <a-select
+        v-model:value="st.dt.soc_destinataria"
+        show-search
+        style="width: 250px; height: 35px"
+        :options="st.gb.optSociedadesUTE"
+        :filter-option="filterOption"
+        :notFoundContent="''"
+      ></a-select>
+    </a-form-item>
+    <a-form-item v-if="st.dt.inmovilizado && st.dt.tipoSolicitud !== '3'" name="inmovilizado" label="Inmovilizado">
       <a-checkbox v-model:checked="st.dt.inmovilizado" disabled />
     </a-form-item>
 
     <a-form-item name="viaPago" label="Vía pago" :rules="[{ required: true, message: 'Campo obligatorio' }]">
       <a-select v-model:value="st.dt.viaPago" :options="st.gb.viasPago" placeholder="Vía de pago" style="width: 200px">
       </a-select>
-    </a-form-item>
-
-    <a-form-item label="F. Solicitud" class="ms-3">
-      <a-input type="date" disabled style="width: 120px" v-model:value="st.dt.fecSolicitud" />
     </a-form-item>
   </div>
 </template>
@@ -123,6 +150,11 @@ const onBlurPedido = async () => {
       loading.value = false;
     }
   }
+};
+
+const filterOption = (input, option) => {
+  // Filtramos opciones del combo que contengan el texto introducido
+  return option.label.toLowerCase().indexOf(input.toLowerCase()) >= 0;
 };
 </script>
 <!-- ............................................... -->

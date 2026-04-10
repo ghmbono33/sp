@@ -1,5 +1,6 @@
 <template>
   <a-table
+    v-if="st.dt.tipoSolicitud !== '3'"
     :columns="columns"
     :data-source="data"
     :pagination="false"
@@ -12,29 +13,29 @@
   />
 
   <div>
-    <a-form-item label="Cuenta">
-      <a-select v-model:value="st.dt.iban_pais" style="width: 150px">
-        <a-select-option value="ES">Española</a-select-option>
-        <a-select-option value="INT">Extranjera</a-select-option>
-      </a-select>
-    </a-form-item>
     <div class="componente-inline">
+      <a-form-item label="Cuenta">
+        <a-select v-model:value="st.dt.iban_pais" style="width: 110px">
+          <a-select-option value="ES">Española</a-select-option>
+          <a-select-option value="INT">Extranjera</a-select-option>
+        </a-select>
+      </a-form-item>
       <!-- 🇪🇸 MODO ESPAÑOL -->
       <template v-if="st.dt.iban_pais === 'ES'">
         <a-form-item label="IBAN">
-          <a-input v-model:value="st.dt.iban_iban" maxlength="4" placeholder="ES00" style="width: 80px" />
+          <a-input v-model:value="st.dt.iban_iban" maxlength="4" placeholder="ES00" style="width: 55px" />
         </a-form-item>
         <a-form-item label="Banco">
-          <a-input v-model:value="st.dt.iban_banco" maxlength="4" style="width: 80px" />
+          <a-input v-model:value="st.dt.iban_banco" maxlength="4" style="width: 55px" />
         </a-form-item>
         <a-form-item label="Sucursal">
-          <a-input v-model:value="st.dt.iban_sucursal" maxlength="4" style="width: 80px" />
+          <a-input v-model:value="st.dt.iban_sucursal" maxlength="4" style="width: 55px" />
         </a-form-item>
         <a-form-item label="D.C.">
-          <a-input v-model:value="st.dt.iban_dc" maxlength="2" style="width: 60px" />
+          <a-input v-model:value="st.dt.iban_dc" maxlength="2" style="width: 40px" />
         </a-form-item>
-        <a-form-item label="Cuenta">
-          <a-input v-model:value="st.dt.iban_cuenta" maxlength="10" style="width: 120px" />
+        <a-form-item label="Nº Cuenta">
+          <a-input v-model:value="st.dt.iban_cuenta" maxlength="10" style="width: 100px" />
         </a-form-item>
       </template>
 

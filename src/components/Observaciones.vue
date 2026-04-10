@@ -3,9 +3,13 @@
 
   <div class="componente-inline">
     <a-form-item label="Estado" v-if="st.dt.tipoSolicitud === '2' || st.dt.tipoSolicitud === '3'">
-      <a-select v-model:value="st.dt.estado" style="width: 150px">
-        <a-select-option value="P">Pdte Aprobación</a-select-option>
-        <a-select-option value="A">Aprobada</a-select-option>
+      <a-select v-model:value="st.dt.estado" style="width: 230px">
+        <a-select-option value="1"
+          >Pdte Aprobación Dr {{ st.dt.tipoSolicitud === '2' ? 'Compras' : 'Negocio' }}</a-select-option
+        >
+        <a-select-option value="2">Aprobada</a-select-option>
+        <!-- opción inhabilitada -->
+        <a-select-option value="3" disabled>Rechazada</a-select-option>
       </a-select>
     </a-form-item>
 

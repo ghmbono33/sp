@@ -29,11 +29,7 @@
         </template>
       </div>
     </a-form-item>
-    <template v-if="!listado">
-      <a-form-item label="Nº Solicitud">
-        <a-input disabled style="width: 75px" v-model:value="st.dt.id" />
-      </a-form-item>
-    </template>
+
     <!-- Modal para obtener el elemento de imputación -->
     <a-modal
       v-model:visible="modalOpen"

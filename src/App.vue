@@ -35,10 +35,17 @@ const st = useStore();
 const inicio = async () => {
   //Es la  primera función que se ejecuta al cargar la aplicación
 
-  //Obtenemos las sociedades
-  const socs = await httpJSONP('Busquedas_jsonp.asp', { sociedades: 'X' });
-  debugger;
-  st.gb.optSociedades = socs.map((soc) => ({ label: soc.nomsociedad, value: soc.sociedad }));
+  //Obtenemos T=TODAS las sociedades
+  const socsTodas = await httpJSONP('Busquedas_jsonp.asp', { empresas: 'T' });
+  st.gb.optSociedades = socsTodas.map((soc) => ({ label: soc.nomsociedad, value: soc.sociedad }));
+
+  //Obtenemos U=Solo sociedades UTE
+  const socsUTE = await httpJSONP('Busquedas_jsonp.asp', { empresas: 'U' });
+  st.gb.optSociedadesUTE = socsUTE.map((soc) => ({ label: soc.nomsociedad, value: soc.sociedad }));
+
+  //Obtenemos N=Solo sociedades no UTE
+  const socsNoUTE = await httpJSONP('Busquedas_jsonp.asp', { empresas: 'N' });
+  st.gb.optSociedadesNoUTE = socsNoUTE.map((soc) => ({ label: soc.nomsociedad, value: soc.sociedad }));
 
   //Obtenemos las vías de pago
   const vias = await httpJSONP('Busquedas_jsonp.asp', { viasPago: 'X' });

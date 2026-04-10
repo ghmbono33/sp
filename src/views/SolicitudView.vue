@@ -1,10 +1,6 @@
 <template>
-  {{ st.dt.receptor_pago }}
-  <!-- <div :class="{ disabled: st.dt.numPedido }"> -->
-  <div>
-    <!-- Si tiene pedido estará inhabilidado -->
-    <!-- Importante: el layout del formulario tiene que ser horizontal y en cada componente en el
-    div principal debe ir la clase componente-inline -->
+  <div :class="{ disabled: st.dt.id.trim() !== '0' }">
+    <!-- No se puede editar, así que si entrar en una solicitud ya existente todos los campos están inhabilitados -->
     <a-form
       :nativeEnterKey="false"
       layout="horizontal"
@@ -23,10 +19,18 @@
           <a-select
             v-model:value="st.dt.tipoSolicitud"
             :options="st.opcTipoSolicitud"
+            :disabled="inhabilitarTipoSolicitud"
             placeholder="Selecciona opción"
             style="width: 230px"
+            @change="avisoTipoSolicitud"
           >
           </a-select>
+        </a-form-item>
+        <a-form-item label="F. Solicitud" class="ms-3">
+          <a-input type="date" disabled style="width: 120px" v-model:value="st.dt.fecSolicitud" />
+        </a-form-item>
+        <a-form-item label="Nº Solicitud">
+          <a-input disabled style="width: 75px" v-model:value="st.dt.id" />
         </a-form-item>
       </div>
 
@@ -35,10 +39,10 @@
         <div>
           <ImportePedido />
         </div>
-        <div>
+        <div v-if="st.dt.tipoSolicitud !== '3'">
           <ImputacionSociedad />
         </div>
-        <div>
+        <div v-if="st.dt.tipoSolicitud !== '3'">
           <ProveedorCompras />
         </div>
         <div class="contenedor-flex">
@@ -56,10 +60,9 @@
 </template>
 
 <script setup>
-import { Modal } from 'ant-design-vue';
+import { message, Modal } from 'ant-design-vue';
 import { onMounted, ref } from 'vue';
 import { useRoute, onBeforeRouteLeave } from 'vue-router';
-import { fechaVacia } from '../helpers/fechas';
 //Pinia
 import { useStore } from '../stores/store';
 const st = useStore();
@@ -67,6 +70,7 @@ const mostarErrores = ref(false);
 let errValidacion = [];
 const route = useRoute();
 const { id } = route.params; //obtenemos el id de la SC que viene como parámetro en la ruta
+const inhabilitarTipoSolicitud = ref(false);
 
 onBeforeRouteLeave(async (to, from) => {
   // este guard se lanzará cuando salgamos de la página bien sea pulsando el botón atrás del navegador
@@ -95,6 +99,7 @@ onBeforeRouteLeave(async (to, from) => {
 onMounted(async () => {
   st.resetData(); //limpiamos los datos
   if (id !== '0') {
+    inhabilitarTipoSolicitud.value = true; //si estamos editando una solicitud, no se podrá cambiar el tipo de solicitud
     try {
       await st.getSolicitud(id);
       // if (st.dt.numPedido) {
@@ -121,6 +126,21 @@ const validateMessages = {
   // number: {
   //   range: '${label} must be between ${min} and ${max}',
   // },
+};
+
+const avisoTipoSolicitud = () => {
+  Modal.confirm({
+    title: 'Una vez seleccionado el tipo de solicitud no podrá cambiarse.',
+    content: '¿Continuar?',
+    okText: 'Sí',
+    cancelText: 'No',
+    onOk: () => {
+      inhabilitarTipoSolicitud.value = true;
+    },
+    onCancel: () => {
+      st.dt.tipoSolicitud = '';
+    },
+  });
 };
 
 const ocultarLogErrores = () => {
@@ -163,7 +183,7 @@ const validaciones = () => {
   errValidacion = [];
 
   // Empresa obligatoria
-  if (st.dt.sociedad.trim() === '') errValidacion.push('Falta indicar la sociedad');
+  if (st.dt.sociedad.trim() === '' && st.dt.tipoSolicitud !== '3') errValidacion.push('Falta indicar la sociedad');
   // Si el tipo de solicitud es "P=P"
   switch (st.dt.tipoSolicitud) {
     case '1': // Pago de Factura, es obligatorio el elemento de imputación a menos que sea inmovilizado

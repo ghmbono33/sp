@@ -10,6 +10,8 @@ export const useStore = defineStore('store', () => {
     inicioPrograma: true,
     viasPago: [],
     optSociedades: [],
+    optSociedadesUTE: [],
+    optSociedadesNoUTE: [],
   });
 
   const initialState = {
@@ -19,6 +21,8 @@ export const useStore = defineStore('store', () => {
     importe: 0,
     fecSolicitud: fechaSolicitud(),
     sociedad: '',
+    soc_pagadora: '',
+    soc_destinataria: '',
     tipoImputacion: '',
     elementoImputacion: '',
     textoElementoImputacion: '',
@@ -167,20 +171,23 @@ export const useStore = defineStore('store', () => {
       dt.justif_pago = data.justif_pago === 'X';
       dt.inmovilizado = data.inmovilizado === 'X';
       dt.estado = data.estado;
+      dt.soc_pagadora = data.soc_pagadora;
+      dt.soc_destinataria = data.soc_destinataria;
       dt.receptor_pago = data.receptor_pago;
 
-      //Datos de las cuentas bancarias del proveedor, accedemos por código y nos quedamos con el primer resultado ya que el código de proveedor es único
-      const pload = { proveedor: 'C' + dt.codProv };
-      const datos_prov = await httpJSONP('busquedas_jsonp.asp', pload);
-      dt.bancos = datos_prov[0].bancos ? datos_prov[0].bancos.split(',') : [];
-      // Cuenta bancaria introducida/seleccionada por el usuario
-      if (dt.iban.trim() === '') {
-        dt.iban_iban = data.iban.slice(0, 4);
-        dt.iban_banco = data.iban.slice(4, 8);
-        dt.iban_sucursal = data.iban.slice(8, 12);
-        dt.iban_dc = data.iban.slice(12, 14);
-        dt.iban_cuenta = data.iban.slice(14, 24);
+      //Datos de las cuentas bancarias del proveedor (solo si no es tipo solicitud 3), accedemos por código y nos quedamos con el primer resultado ya que el código de proveedor es único
+      if (dt.tipoSolicitud !== '3') {
+        const pload = { proveedor: 'C' + dt.codProv };
+        const datos_prov = await httpJSONP('busquedas_jsonp.asp', pload);
+        dt.bancos = datos_prov[0].bancos ? datos_prov[0].bancos.split(',') : [];
       }
+      // IBAN
+      const iban = data.iban;
+      dt.iban_iban = iban.slice(0, 4);
+      dt.iban_banco = iban.slice(4, 8);
+      dt.iban_sucursal = iban.slice(8, 12);
+      dt.iban_dc = iban.slice(12, 14);
+      dt.iban_cuenta = iban.slice(14, 24);
 
       //copiamos dt en dtInicial
       Object.assign(dtInicial, dt);
@@ -261,6 +268,8 @@ export const useStore = defineStore('store', () => {
       tipoImp: dt.tipoImputacion,
       elemImp: dt.elementoImputacion,
       sociedad: dt.sociedad.substring(0, 4),
+      soc_pagadora: dt.soc_pagadora.substring(0, 4),
+      soc_destinataria: dt.soc_destinataria.substring(0, 4),
       codProv: dt.codProv,
       nomprov: dt.nomProv,
       nifProv: dt.nifProv,

@@ -290,6 +290,7 @@ const onOk = async () => {
     return message.error('Datos del proveedor incompletos', 1.5);
   }
   // Dejamos en blanco los datos del banco por si anteriormente estuvieran grabados y se cambiara de proveedor
+
   st.dt.iban = '';
   st.dt.iban_pais = 'ES';
   st.dt.iban_iban = '';
@@ -297,7 +298,7 @@ const onOk = async () => {
   st.dt.iban_sucursal = '';
   st.dt.iban_dc = '';
   st.dt.iban_cuenta = '';
-  
+
   st.dt.codProv = formState.codigo;
   st.dt.nomProv = formState.nombre;
   st.dt.nifProv = formState.nif;
