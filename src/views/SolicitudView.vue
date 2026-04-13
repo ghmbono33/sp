@@ -177,7 +177,7 @@ function mod97(iban) {
   return BigInt(numeric) % 97n === 1n;
 }
 
-const validaciones = () => {
+const validaciones = async () => {
   // Las validaciones realizadas con rules en el formulario son correctas
   // Comprobamos otras validaciones
   errValidacion = [];
@@ -216,7 +216,7 @@ const validaciones = () => {
     mostarErrores.value = true;
   } else {
     // Todo ok, guardamos los cambios
-    st.guardar();
+    await st.guardar();
   }
 };
 

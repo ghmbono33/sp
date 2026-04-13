@@ -109,7 +109,6 @@ const copiar = (id) => {
           },
         });
       } catch (error) {
-        console.log(error.message);
         Modal.error({
           title: `Ha habido problemas al copiar la solicitud. `,
           okText: 'Aceptar',

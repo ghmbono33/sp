@@ -13,15 +13,19 @@
       </a-select>
     </a-form-item>
 
-    <a-form-item
-      name="fec_pago"
-      label="Fecha Pago"
-      :rules="[{ required: st.dt.viaPago, message: 'Campo obligatorio' }]"
-    >
+    <a-form-item name="fec_pago" label="Fecha Pago" :rules="[{ required: true, message: 'Campo obligatorio' }]">
       <a-input type="date" style="width: 130px" v-model:value="st.dt.fec_pago" />
     </a-form-item>
-    <a-form-item name="justif_pago" label="Requiere Justificante de Pago">
+    <a-form-item name="justif_pago" label="Requiere Justificante de Pago" style="margin-left: 20px">
       <a-checkbox v-model:checked="st.dt.justif_pago" />
+    </a-form-item>
+    <a-form-item
+      v-if="st.dt.id !== '0' && st.dt.tipoSolicitud !== '4'"
+      name="doc_contabilizado"
+      label="Documento Contabilizado"
+      style="margin-left: 20px"
+    >
+      <a-input disabled v-model:value="st.dt.doc_contabilizado" style="width: 130px" />
     </a-form-item>
   </div>
   <div>

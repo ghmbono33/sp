@@ -43,6 +43,7 @@ export const useStore = defineStore('store', () => {
     iban_cuenta: '',
     fec_pago: '',
     justif_pago: false,
+    doc_contabilizado: '',
     observa: '',
     solicitudes: [], //tabla/grid  (pantalla principal búsqueda solicitudes)
     fecDesde: '', //fecha filtro en el listado de SC
@@ -174,6 +175,7 @@ export const useStore = defineStore('store', () => {
       dt.soc_pagadora = data.soc_pagadora;
       dt.soc_destinataria = data.soc_destinataria;
       dt.receptor_pago = data.receptor_pago;
+      dt.doc_contabilizado = data.doc_contabilizado;
 
       //Datos de las cuentas bancarias del proveedor (solo si no es tipo solicitud 3), accedemos por código y nos quedamos con el primer resultado ya que el código de proveedor es único
       if (dt.tipoSolicitud !== '3') {
@@ -287,7 +289,7 @@ export const useStore = defineStore('store', () => {
       // ficheros: dt.ficheros,
     };
     try {
-      let nuevaSC = false;
+      let nuevaSP = false;
       const url = 'Guardar_jsonp.asp';
       loading.value = true;
       // guardamos y obtenemos el id, solo será necesario si es una nueva SC
@@ -295,14 +297,14 @@ export const useStore = defineStore('store', () => {
       if (dt.id === '0') {
         dt.id = +id; //nueva SC, asignamos el nº de nuevo id  el + es para que convierta a numero
         ultimoIdTratado = dt.id; //ultimo Id modificado
-        nuevaSC = true;
+        nuevaSP = true;
       }
 
       // Se ha guardado correctamente
       //actualizamos dtInicial con el valor de dt para que al pulsar el botón salir tenga en cuenta si han
       //habido cambios después de pulsar guardar
       Object.assign(dtInicial, dt);
-      message.success(`Se ha ${nuevaSC ? 'creado' : 'guardado'} la solicitud de pago nº ${dt.id}`, 1.5);
+      message.success(`Se ha ${nuevaSP ? 'creado' : 'guardado'} la solicitud de pago nº ${dt.id}`, 1.5);
     } catch (error) {
       console.error('Error en la solicitud:', error);
       return message.error('Ha habido algun problema al guardar la solicitud de pago', 1.5);
