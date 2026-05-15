@@ -194,16 +194,6 @@ const formState = reactive({
 const tituloProveedor = computed(() => {
   return st.dt.tipoSolicitud === '4' ? 'Proveedor/Receptor de Pago' : 'Proveedor';
 });
-const proveedorDisabled = computed(() => {
-  // No dejamos seleccionar elemento de imputación si es tipo 1 y el importe es mayor o igual a 3000 o si no se ha indicado el número de pedido
-  // return props.listado || st.dt.numPedido.trim() !== '' || (st.dt.tipoSolicitud === '1' && st.dt.importe >= 3000);
-  return props.listado;
-});
-
-const disabledOpenModal = computed(() => {
-  if (props.listado) return false;
-  return !st.dt.sociedad;
-});
 
 const openModal = (value) => {
   if (st.dt.numPedido.trim() !== '') {
@@ -316,7 +306,12 @@ const onOk = async () => {
     } else {
       if (st.dt.sociedad && st.dt.receptor_pago.trim() === '') {
         message.warning('El proveedor no pertenece a la sociedad del elemento de imputación', 2);
+        if (st.dt.observa.trim() === '') {
+          st.dt.observa = 'Proveedor no pertenece a la sociedad del elemento de imputación';
+        }
       }
+
+      //
     }
     modalOpen.value = false; //Cerramos el modal
   } catch (error) {

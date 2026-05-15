@@ -32,6 +32,7 @@ export const useStore = defineStore('store', () => {
     nifProv: '',
     viaPago: '',
     estado: '',
+    // textoEstado: '',
     inmovilizado: false,
     bancos: [],
     iban: '',
@@ -46,17 +47,18 @@ export const useStore = defineStore('store', () => {
     doc_contabilizado: '',
     observa: '',
     solicitudes: [], //tabla/grid  (pantalla principal búsqueda solicitudes)
-    fecDesde: '', //fecha filtro en el listado de SC
-    fecHasta: '', //fecha filtro en el listado de SC
-    conPedido: '', //filtro en el listado de SC
+    fecDesde: '', //fecha filtro en el listado de SD
+    fecHasta: '', //fecha filtro en el listado de SD
+    filtroEstado: '', //filtro en el listado de SD
     colaborador: '', //filtro colaborador seleccionado (solo para los responsables)
     cebe: '', //filtro cebe (para aquellos que en ZTCO002 tienen asignado Centros o Elem. Pep)
+    aprobarSolicitud: '', // Devolverá X si el usuario puede aprobar la solicitud
     numPedido: '',
-    numSolicitud: '', //filtro en el listado de SC
+    numSolicitud: '', //filtro en el listado de SD
     ficheros: '', // ficheros adjuntos separados por |
   };
   // En aux guardamos otros valores auxiliares que compartimos pero que no son datos
-  // intrínsicos de la SC.
+  // intrínsicos de la SD.
   const aux = reactive({ idDestinoCopia: '' }); //id copia solicitud destino
   let dt = reactive({ ...initialState });
   let dtInicial = reactive({ ...initialState }); //datos iniciales, nos sirve para comprobar si se han producido cambios
@@ -88,6 +90,11 @@ export const useStore = defineStore('store', () => {
       width: '3%',
     },
     {
+      title: 'Tipo Solicitud',
+      dataIndex: 'textoTipoSolicitud',
+      width: '6%',
+    },
+    {
       title: 'F. Solicitud',
       dataIndex: 'fecSolicitud',
       width: '4%',
@@ -95,7 +102,7 @@ export const useStore = defineStore('store', () => {
     {
       title: 'Elemento de Imputación',
       dataIndex: 'txtElemImp',
-      width: '21%',
+      width: '18%',
     },
     {
       title: 'Sociedad',
@@ -103,13 +110,18 @@ export const useStore = defineStore('store', () => {
       width: '3.5%',
     },
     {
-      title: 'Proveedor',
-      dataIndex: 'proveedor',
-      width: '16%',
+      title: 'Sociedad UTE',
+      dataIndex: 'sociedad',
+      width: '3.5%',
     },
     {
-      title: 'Nº Pedido',
-      dataIndex: 'numPedido',
+      title: 'Proveedor',
+      dataIndex: 'proveedor',
+      width: '14%',
+    },
+    {
+      title: 'Doc. Contable',
+      dataIndex: 'doc_contabilizado',
       width: '4%',
     },
 
@@ -120,18 +132,23 @@ export const useStore = defineStore('store', () => {
       align: 'right',
     },
     {
-      dataIndex: 'copiar',
-      title: 'Copiar',
+      dataIndex: 'textoEstado',
+      title: 'Autorizado',
       width: '4%',
-      align: 'center',
+      // align: 'center',
     },
-    {
-      // dataIndex: 'borrar',
-      dataIndex: 'borrar',
-      title: 'Borrar',
-      width: '3%',
-      align: 'center',
-    },
+    // {
+    //   dataIndex: 'copiar',
+    //   title: 'Copiar',
+    //   width: '4%',
+    //   align: 'center',
+    // },
+    // {
+    //   dataIndex: 'borrar',
+    //   title: 'Borrar',
+    //   width: '3%',
+    //   align: 'center',
+    // },
   ];
 
   // obtenemos los colaboradores de un responsable (si no lo es el array estará vacío)
@@ -148,7 +165,7 @@ export const useStore = defineStore('store', () => {
     ultimoIdTratado = id; //ultimo id consultado
     // Obtenemos la solucitud correspondiente al id para mostrarla en SolicitudView
     const url = 'leer_jsonp.asp';
-    const payload = { id };
+    const payload = { id, numcontrol };
     try {
       const datos = await httpJSONP(url, payload);
       debugger;
@@ -176,6 +193,7 @@ export const useStore = defineStore('store', () => {
       dt.soc_destinataria = data.soc_destinataria;
       dt.receptor_pago = data.receptor_pago;
       dt.doc_contabilizado = data.doc_contabilizado;
+      dt.aprobarSolicitud = data.aprobarSolicitud;
 
       //Datos de las cuentas bancarias del proveedor (solo si no es tipo solicitud 3), accedemos por código y nos quedamos con el primer resultado ya que el código de proveedor es único
       if (dt.tipoSolicitud !== '3') {
@@ -200,6 +218,7 @@ export const useStore = defineStore('store', () => {
 
   const getSolicitudes = async (id, actualizarDtBusqueda = true) => {
     // Obtenemos las solicitudes que se mostrarán en el listado/tabla principal de la aplicación
+    debugger;
     const url = 'leer_jsonp.asp';
     const payload = {
       idTabla: id, //obtiene la sc del id
@@ -207,9 +226,11 @@ export const useStore = defineStore('store', () => {
       tipoImp: dt.tipoImputacion,
       fecDesde: fechaSap(dt.fecDesde),
       fecHasta: fechaSap(dt.fecHasta),
-      conPedido: dt.conPedido || '',
+      filtroEstado: dt.filtroEstado,
+      tipoSolicitud: dt.tipoSolicitud,
       codProv: dt.codProv,
       colaborador: dt.colaborador,
+      sociedad: dt.sociedad.substring(0, 4), //solo el código de sociedad sin el nombre
       cebe: dt.cebe,
       numcontrol /* el nº de control recogido por la url (en el caso que quiera obtener las SC de alguien en concreto) */,
     };
@@ -265,6 +286,7 @@ export const useStore = defineStore('store', () => {
     const textoTipoSolicitud = opcTipoSolicitud.find((o) => o.value === dt.tipoSolicitud)?.label || '';
     const payload = {
       id: dt.id,
+      numcontrol,
       importe: dt.importe,
       numpedido: dt.numPedido,
       tipoImp: dt.tipoImputacion,
@@ -307,7 +329,62 @@ export const useStore = defineStore('store', () => {
       message.success(`Se ha ${nuevaSP ? 'creado' : 'guardado'} la solicitud de pago nº ${dt.id}`, 1.5);
     } catch (error) {
       console.error('Error en la solicitud:', error);
-      return message.error('Ha habido algun problema al guardar la solicitud de pago', 1.5);
+      return message.error('Ha habido algun problema al guardar la solicitud de pago', 2);
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  const aprobarSolicitud = async () => {
+    // Construimos el cuerpo del mail que se enviará a los destinatarios de la aprobación, aprovecho que la info está en
+    // pantalla para evitar hacer las búsquedas en el backend
+    let cuerpo = '';
+    if (dt.tipoSolicitud === '2') {
+      // Pago anticipado
+      cuerpo =
+        'Importe: ' +
+        dt.importe +
+        ' Euros\n' +
+        'Elemento de imputación: ' +
+        dt.textoElementoImputacion +
+        '\n' +
+        'Sociedad: ' +
+        dt.sociedad +
+        '\n' +
+        'Proveedor: ' +
+        dt.nomProv +
+        '\n' +
+        'Fecha de pago: ' +
+        dt.fec_pago;
+    } else if (dt.tipoSolicitud === '3') {
+      // Aportación UTE
+      cuerpo =
+        'Importe: ' +
+        dt.importe +
+        ' Euros\n' +
+        'Empresa pagadora: ' +
+        dt.soc_pagadora +
+        '\n' +
+        'Empresa UTE destinaria: ' +
+        dt.soc_destinataria +
+        '\n' +
+        'Fecha de pago: ' +
+        dt.fec_pago;
+    }
+
+    const payload = {
+      id: dt.id,
+      cuerpo: cuerpo,
+      numcontrol,
+    };
+    try {
+      const url = 'aprobar_jsonp.asp';
+      loading.value = true;
+      // guardamos y obtenemos el id, solo será necesario si es una nueva SC
+      const { id } = await httpJSONP(url, payload);
+    } catch (error) {
+      console.error('Error en la solicitud:', error);
+      return message.error('Ha habido algun problema al aprobar la solicitud de pago', 2);
     } finally {
       loading.value = false;
     }
@@ -372,6 +449,8 @@ export const useStore = defineStore('store', () => {
     return `${year}-${month}-${day}`;
   }
 
+  const ibanCompleto = () => dt.iban_iban + dt.iban_banco + dt.iban_sucursal + dt.iban_dc + dt.iban_cuenta;
+
   return {
     gb,
     dt,
@@ -390,5 +469,7 @@ export const useStore = defineStore('store', () => {
     colSolicitudes,
     numcontrol,
     opcTipoSolicitud,
+    ibanCompleto,
+    aprobarSolicitud,
   };
 });

@@ -1,11 +1,6 @@
 call npm run build
-xcopy dist l:\sp\sp /E /I /Y
-xcopy dist m:\sp\sp /E /I /Y
-
-
-call npm run build
-xcopy dist l:\puestosprl /E /I /Y
-xcopy dist m:\puestosprl /E /I /Y
+xcopy dist l:\sp /E /I /Y
+xcopy dist m:\sp /E /I /Y
 @echo off
 echo ¿Desea copiar ASP a PRD? (S/N)
 set /p answer=

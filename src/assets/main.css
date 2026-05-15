@@ -59,6 +59,12 @@ a {
   background-color: white !important;
   border-color: #198754 !important;
 }
+
+.ant-success {
+  color: white !important;
+  background-color: #198754 !important;
+  border-color: #198754 !important;
+}
 .ant-outlined-success:hover {
   color: white !important;
   background-color: #198754 !important;

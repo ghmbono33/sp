@@ -10,6 +10,7 @@ import 'ant-design-vue/es/message/style/css';
 import App from './App.vue';
 import router from './router';
 
+console.log('v3');
 const app = createApp(App);
 
 app.use(createPinia());

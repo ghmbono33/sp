@@ -3,7 +3,7 @@
 
   <div class="componente-inline">
     <a-form-item label="Estado" v-if="st.dt.tipoSolicitud === '2' || st.dt.tipoSolicitud === '3'">
-      <a-select v-model:value="st.dt.estado" style="width: 230px">
+      <a-select v-model:value="st.dt.estado" style="width: 230px" disabled>
         <a-select-option value="1"
           >Pdte Aprobación Dr {{ st.dt.tipoSolicitud === '2' ? 'Compras' : 'Negocio' }}</a-select-option
         >
@@ -14,8 +14,10 @@
     </a-form-item>
 
     <a-form-item name="fec_pago" label="Fecha Pago" :rules="[{ required: true, message: 'Campo obligatorio' }]">
-      <a-input type="date" style="width: 130px" v-model:value="st.dt.fec_pago" />
+      <!-- no permite seleccionar una fecha anterior a hoy -->
+      <a-input type="date" style="width: 130px" v-model:value="st.dt.fec_pago" :min="new Date().toISOString().split('T')[0]" />
     </a-form-item>
+
     <a-form-item name="justif_pago" label="Requiere Justificante de Pago" style="margin-left: 20px">
       <a-checkbox v-model:checked="st.dt.justif_pago" />
     </a-form-item>
@@ -37,6 +39,9 @@
 </template>
 
 <script setup>
+const disabledDate = (current) => {
+  return current && current < dayjs().startOf('day');
+};
 import { useStore } from '../stores/store.js';
 const st = useStore();
 </script>

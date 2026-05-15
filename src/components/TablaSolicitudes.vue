@@ -125,8 +125,7 @@ const copiar = (id) => {
 <style scoped>
 /* Tabla ant design */
 #tablaSolicitudes {
-  /* width: 1450px; */
-  width: 1650px;
+  width: 1750px;
   overflow-y: scroll;
   border: 1px solid #999;
 }

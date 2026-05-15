@@ -23,7 +23,13 @@
       <!-- 🇪🇸 MODO ESPAÑOL -->
       <template v-if="st.dt.iban_pais === 'ES'">
         <a-form-item label="IBAN">
-          <a-input v-model:value="st.dt.iban_iban" maxlength="4" placeholder="ES00" style="width: 55px" />
+          <a-input
+            v-model:value="st.dt.iban_iban"
+            maxlength="4"
+            placeholder="ES00"
+            style="width: 55px"
+            @blur="st.dt.iban_iban = (st.dt.iban_iban || '').toUpperCase()"
+          />
         </a-form-item>
         <a-form-item label="Banco">
           <a-input v-model:value="st.dt.iban_banco" maxlength="4" style="width: 55px" />

@@ -12,13 +12,24 @@
       <a-input type="date" style="width: 130px" v-model:value="st.dt.fecHasta" />
     </a-form-item>
 
-    <a-form-item name="estado" label="Estado">
+    <a-form-item name="filtroEstado" label="Estado">
       <a-select
-        v-model:value="st.dt.conPedido"
-        :options="optConPedido"
+        v-model:value="st.dt.filtroEstado"
+        :options="optEstados"
         placeholder="Estado del Pedido"
         style="width: 150px"
       ></a-select>
+    </a-form-item>
+
+    <a-form-item name="tipoSolicitud" label="Tipo Solicitud">
+      <a-select
+        v-model:value="st.dt.tipoSolicitud"
+        :options="st.opcTipoSolicitud"
+        :disabled="inhabilitarTipoSolicitud"
+        placeholder="Selecciona opción"
+        style="width: 230px"
+      >
+      </a-select>
     </a-form-item>
 
     <!-- Botón para eliminar los filtros -->
@@ -84,34 +95,18 @@ import { httpJSONP } from '../helpers/http';
 const st = useStore();
 const optColaborador = ref([]);
 const optCebe = ref([]);
-const optConPedido = [
-  { label: 'Con Pedido', value: 'S' },
-  { label: 'Sin Pedido', value: 'N' },
-  { label: 'Todos', value: '' },
+const optEstados = [
+  { label: 'Contabilizado', value: 'CO' },
+  { label: 'Pdte Contabilizar', value: 'PC' },
+  { label: 'Pdte Autorizar', value: 'PA' },
+  { label: 'Rechazado', value: 'RE' },
 ];
-
-// const getCebesRespon = async () => {
-//   const payload = { numcontrol: st.numcontrol };
-//   optCebe.value = await httpJSONP('cebesRespon_jsonp.asp', payload);
-//   if (optCebe.value.length > 0) {
-//     // Tiene asignado algún cebe (ceco o pep) en la ZTCO002, se muestra solo los que tienen solicitudes
-//     // Este filtro se muestra solo a los JO u otros reponsables de centros
-//     // añadimos TODOS al principio para que pueda seleccionarlos todos
-//     //el valor de todos contiene los nombres de usuario separados por comas, ejem: '0075120/U0','0075121/00'
-//     const todos = optCebe.value.map((e) => e.value).join(',');
-//     optCebe.value.unshift({ label: 'TODOS', value: todos });
-//   }
-// };
 
 const getCebesRespon = async () => {
   try {
     const payload = { numcontrol: st.numcontrol };
     optCebe.value = await httpJSONP('cebesRespon_jsonp.asp', payload);
-
-    if (optCebe.value.length > 0) {
-      const todos = optCebe.value.map((e) => e.value).join(';');
-      optCebe.value.unshift({ label: 'TODOS', value: todos });
-    }
+    optCebe.value.unshift({ label: '', value: '' });
   } catch (error) {
     console.error('Error en getCebesRespon:', error);
   }
